@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-    <title>麻將日誌 - 2026</title>
+    <title>麻將日誌</title>
     <!-- 引入外部資源 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -65,10 +65,11 @@
     <div id="app" class="ios-pwa-container overflow-x-hidden" v-cloak>
         <div class="h-[env(safe-area-inset-top)] w-full bg-[#f7f6f6] sticky top-0 z-50 no-export"></div>
 
-        <div ref="mainContent" class="w-full max-w-6xl mx-auto flex flex-col gap-6 px-3 md:px-10 pb-32">
+        <!-- 主容器 -->
+        <div ref="mainContent" class="w-full max-w-6xl mx-auto flex flex-col gap-4 px-3 md:px-10 pb-32">
             
             <!-- Header 標題列 -->
-            <div class="pt-8 pb-4 text-center relative">
+            <div class="pt-8 pb-1 text-center relative">
                 <div class="absolute left-0 top-8 flex gap-2 no-export">
                     <button @click="handleManualRefresh" class="p-2 text-[#999] active-scale">
                         <i data-lucide="rotate-cw" :class="{'animate-spin text-[#1893f8]': cloudStatus === 'syncing'}" class="w-5 h-5"></i>
@@ -82,8 +83,9 @@
                 <h1 class="text-4xl font-black text-[#201f1f] tracking-widest mb-2">麻將日誌</h1>
                 <div class="h-0.5 w-16 bg-[#1893f8]/40 mx-auto rounded-full mb-4"></div>
                 
-                <div class="flex justify-center no-export">
-                    <div class="inline-flex items-center gap-2 mb-3 px-1 py-0.5 text-[10px] font-bold tracking-widest uppercase text-[#999]">
+                <!-- 雲端同步狀態 -->
+                <div class="flex flex-col items-center no-export">
+                    <div class="inline-flex items-center gap-2 mb-1 px-1 py-0.5 text-[10px] font-bold tracking-widest uppercase text-[#999]">
                         <div v-if="cloudStatus === 'connected'" class="w-2 h-2 bg-emerald-500 rounded-full"></div>
                         <div v-else-if="cloudStatus === 'disconnected'" class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                         <i v-else-if="cloudStatus === 'syncing'" data-lucide="refresh-cw" class="w-3 h-3 animate-spin text-[#1893f8]"></i>
@@ -91,13 +93,20 @@
                     </div>
                 </div>
 
-                <div v-if="activeTab === 'home'" class="mt-4 no-export max-w-[280px] mx-auto w-full px-1">
-                    <div class="relative">
-                        <select v-model="monthFilter" class="w-full appearance-none bg-white border border-[#eee] rounded-full px-8 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer">
-                            <option value="all">2026 全年統計</option>
-                            <option v-for="m in 12" :key="m" :value="m">{{ currentYear }} 年 {{ m }} 月</option>
+                <!-- 首頁選單 -->
+                <div v-if="activeTab === 'home'" class="mt-4 no-export max-w-[400px] mx-auto w-full px-1 flex gap-2">
+                    <div class="flex-1 relative">
+                        <select v-model="currentYear" class="w-full appearance-none bg-white border border-[#eee] rounded-full px-6 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer text-center">
+                            <option v-for="y in yearOptions" :key="y" :value="y">{{ y }} 年</option>
                         </select>
-                        <i data-lucide="chevron-down" class="text-[#1893f8] absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none w-4 h-4"></i>
+                        <i data-lucide="chevron-down" class="text-[#1893f8] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none w-4 h-4"></i>
+                    </div>
+                    <div class="flex-[1.5] relative">
+                        <select v-model="monthFilter" class="w-full appearance-none bg-white border border-[#eee] rounded-full px-6 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer text-center">
+                            <option value="all">全年統計</option>
+                            <option v-for="m in 12" :key="m" :value="m">{{ m }} 月</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="text-[#1893f8] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none w-4 h-4"></i>
                     </div>
                 </div>
             </div>
@@ -110,7 +119,7 @@
                             <div class="flex items-center justify-center gap-2 mb-6">
                                 <i data-lucide="trophy" class="w-5 h-5 text-white/80"></i>
                                 <h2 class="text-xl font-black tracking-widest uppercase">
-                                    {{ currentYear }} {{ monthFilter === 'all' ? 'Balance' : monthFilter + '月 表現' }}
+                                    {{ monthFilter === 'all' ? 'Yearly Balance' : monthFilter + '月 表現' }}
                                 </h2>
                             </div>
                             <div class="grid grid-cols-2 gap-8 relative">
@@ -173,14 +182,34 @@
 
                 <!-- Tab 2: 日曆紀錄 -->
                 <div v-if="activeTab === 'calendar'" class="flex flex-col gap-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
-                    <div class="bg-white rounded-[3rem] p-2 md:p-10 border border-[#eee] shadow-sm">
-                        <div class="flex items-center justify-between px-4 py-4 mb-6">
-                            <button @click="prevMonth" class="w-12 h-12 flex items-center justify-center rounded-full bg-white text-[#1893f8] border border-[#eee] active-scale shadow-sm"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
-                            <div class="flex flex-col items-center">
-                                <span class="text-2xl font-black text-[#1893f8] tracking-widest">{{ currentYear }}</span>
-                                <div class="text-xl font-bold text-[#201f1f] mt-1">{{ currentMonth + 1 }}月 紀錄表</div>
+                    <div class="bg-white rounded-[3rem] p-4 md:p-10 border border-[#eee] shadow-sm">
+                        
+                        <!-- 標題 Monthly Records -->
+                        <div class="text-center mb-4">
+                            <h2 class="text-lg md:text-xl font-black text-[#302b28] tracking-[0.15em]">Monthly Records</h2>
+                        </div>
+
+                        <!-- 日曆控制區 -->
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 px-4 pb-6 mb-2">
+                            <div class="flex items-center gap-4 w-full md:w-auto justify-center">
+                                <button @click="prevMonth" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#1893f8] text-white border border-[#1893f8] active-scale shadow-md"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                                
+                                <div class="flex items-center gap-1 bg-[#f7f6f6] px-4 py-2 rounded-2xl text-[#1893f8] font-black">
+                                    <div class="relative">
+                                        <select v-model="currentYear" class="appearance-none bg-transparent border-none px-2 py-1 text-base font-black focus:ring-0 cursor-pointer text-center">
+                                            <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option>
+                                        </select>
+                                    </div>
+                                    <span class="text-[#999] font-black text-sm px-1">/</span>
+                                    <div class="relative">
+                                        <select v-model="currentMonth" class="appearance-none bg-transparent border-none px-2 py-1 text-base font-black focus:ring-0 cursor-pointer text-center">
+                                            <option v-for="(m, idx) in 12" :key="m" :value="idx">{{ m }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button @click="nextMonth" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#1893f8] text-white border border-[#1893f8] active-scale shadow-md"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
                             </div>
-                            <button @click="nextMonth" class="w-12 h-12 flex items-center justify-center rounded-full bg-white text-[#1893f8] border border-[#eee] active-scale shadow-sm"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
                         </div>
                         
                         <div class="grid grid-cols-7 gap-1 mb-4">
@@ -190,24 +219,27 @@
                         <div class="grid grid-cols-7 gap-1 md:gap-3 mb-4">
                             <div v-for="empty in firstDayOfMonth" :key="'e-'+empty" class="min-h-[80px]"></div>
                             <button v-for="day in daysInMonth" :key="day" @click="handleDateClick(day)"
-                                class="min-h-[120px] md:min-h-[160px] h-auto rounded-2xl md:rounded-[2rem] flex flex-col items-center py-3 transition-all relative active-scale bg-white border"
+                                class="min-h-[120px] md:min-h-[170px] h-auto rounded-3xl flex flex-col items-center py-4 transition-all relative active-scale bg-white border"
                                 :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'border-2 border-[#1893f8] shadow-md z-10' : 'border-[#eee]'">
                                 
-                                <span class="text-sm md:text-lg font-black mb-1 md:mb-2" :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'text-[#1893f8]' : 'text-[#999]'">{{ day }}</span>
+                                <span class="text-sm md:text-lg font-black mb-3" :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'text-[#1893f8]' : 'text-[#999]'">{{ day }}</span>
                                 
+                                <!-- 數據顯示：恢復方塊(Chip)設計並加大框框尺寸 -->
                                 <div v-if="records[formatDateKey(currentYear, currentMonth + 1, day)]" 
-                                     class="grid grid-cols-2 w-full px-1 gap-1 md:gap-1.5 mt-1">
-                                    <div class="w-full font-black flex flex-col items-center justify-center px-0.5 py-1.5 md:py-2.5 rounded-lg md:rounded-xl leading-none shadow-sm transition-all"
+                                     class="grid grid-cols-2 w-full px-1.5 gap-1 md:gap-2 mt-1">
+                                    <!-- 左：阿如 -->
+                                    <div class="w-full font-black flex flex-col items-center justify-center px-1 py-2 md:py-4 rounded-xl md:rounded-2xl leading-none shadow-sm transition-all"
                                         :class="getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
-                                        <span class="text-[9px] md:text-[13px] truncate w-full text-center mb-0.5 opacity-70">阿如</span>
-                                        <span class="font-mono text-[10px] md:text-[14px] truncate w-full text-center font-black">
+                                        <span class="text-[9px] md:text-[13px] truncate w-full text-center mb-1 opacity-70">阿如</span>
+                                        <span class="font-mono text-[10px] md:text-[15px] truncate w-full text-center font-black">
                                             {{ getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') > 0 ? '+' : '' }}{{ getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') || 0 }}
                                         </span>
                                     </div>
-                                    <div class="w-full font-black flex flex-col items-center justify-center px-0.5 py-1.5 md:py-2.5 rounded-lg md:rounded-xl leading-none shadow-sm transition-all"
+                                    <!-- 右：阿瑋 -->
+                                    <div class="w-full font-black flex flex-col items-center justify-center px-1 py-2 md:py-4 rounded-xl md:rounded-2xl leading-none shadow-sm transition-all"
                                         :class="getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿瑋') > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿瑋') < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
-                                        <span class="text-[9px] md:text-[13px] truncate w-full text-center mb-0.5 opacity-70">阿瑋</span>
-                                        <span class="font-mono text-[10px] md:text-[14px] truncate w-full text-center font-black">
+                                        <span class="text-[9px] md:text-[13px] truncate w-full text-center mb-1 opacity-70">阿瑋</span>
+                                        <span class="font-mono text-[10px] md:text-[15px] truncate w-full text-center font-black">
                                             {{ getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿瑋') > 0 ? '+' : '' }}{{ getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿瑋') || 0 }}
                                         </span>
                                     </div>
@@ -255,14 +287,14 @@
                     <div class="bg-white rounded-[3rem] shadow-sm border border-[#eee] p-8 md:p-12">
                         <div class="flex items-center justify-center gap-3 mb-10 border-b border-[#f7f6f6] pb-8">
                             <i data-lucide="award" class="w-8 h-8 text-[#1893f8]"></i>
-                            <h3 class="text-2xl font-black text-[#302b28]">{{ currentYear }} 年度英雄榜</h3>
+                            <h3 class="text-2xl font-black text-[#302b28]">年度英雄榜</h3>
                         </div>
                         
                         <div class="flex flex-col gap-6">
                             <div v-for="(item, idx) in leaderboard" :key="item.name" class="flex flex-col p-8 rounded-[3rem] bg-[#f7f6f6]/50 border border-transparent hover:bg-white hover:border-[#eee] hover:shadow-xl transition-all duration-300">
                                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                                     <div class="flex items-center gap-4 overflow-hidden">
-                                        <span class="text-base font-black italic w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm" :class="idx === 0 ? 'bg-yellow-400 text-white' : 'bg-white text-[#999]'">{{ idx + 1 }}</span>
+                                        <span class="text-base font-black italic w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm" :class="idx === 0 ? 'bg-yellow-400 text-white shadow-sm' : 'bg-white text-[#999]'">{{ idx + 1 }}</span>
                                         <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#302b28] shadow-sm shrink-0"><i data-lucide="user" class="w-5 h-5"></i></div>
                                         <span class="font-black text-[#302b28] text-xl truncate">{{ item.name }}</span>
                                     </div>
@@ -356,7 +388,7 @@
                                 </div>
                                 <div class="md:col-span-1">
                                     <label class="text-[11px] font-black text-[#999] block uppercase mb-3 tracking-widest">戰鬥地點</label>
-                                    <input type="text" v-model="formData.location" placeholder="例如：新家、基地..." class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none focus:ring-2 ring-[#1893f8]">
+                                    <input type="text" v-model="formData.location" placeholder="例如：基地..." class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none focus:ring-2 ring-[#1893f8]">
                                 </div>
                             </div>
                             
@@ -407,7 +439,7 @@
                         <div v-if="records[selectedDate]" class="space-y-8 animate-in fade-in duration-500">
                              <div class="bg-[#f7f6f6] p-8 rounded-[3rem] grid grid-cols-2 gap-8 shadow-inner">
                                 <div><div class="text-[10px] text-[#999] font-black uppercase mb-2 tracking-widest">戰鬥規格</div><div class="text-lg font-bold">{{ records[selectedDate].stakes }} / {{ records[selectedDate].rounds }}將</div></div>
-                                <div><div class="text-[10px] text-[#999] font-black uppercase mb-2 tracking-widest">對戰地點</div><div class="text-lg font-bold">{{ records[selectedDate].location || '未標註地點' }}</div></div>
+                                <div><div class="text-[10px] text-[#999] font-black uppercase mb-2 tracking-widest">對戰地點</div><div class="text-lg font-bold">{{ records[selectedDate].location || '戰場不明' }}</div></div>
                              </div>
                              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div v-for="(s, n) in records[selectedDate].playerStats" :key="n" class="flex justify-between p-6 bg-white border border-[#eee] rounded-3xl shadow-sm items-center hover:shadow-md transition-shadow">
@@ -431,7 +463,7 @@
                             <div class="w-12 h-12 bg-[#1893f8]/10 rounded-2xl flex items-center justify-center text-[#1893f8]"><i data-lucide="user" class="w-6 h-6"></i></div>
                             <div>
                                 <h3 class="text-2xl font-black text-[#201f1f]">{{ detailPlayer }} 戰鬥紀錄</h3>
-                                <p class="text-[10px] text-[#999] font-black uppercase mt-1 tracking-widest">{{ monthFilter === 'all' ? '2026 全年度數據' : monthFilter + '月份 篩選數據' }}</p>
+                                <p class="text-[10px] text-[#999] font-black uppercase mt-1 tracking-widest">{{ monthFilter === 'all' ? '跨年度累計' : currentYear + '年 ' + monthFilter + '月份 篩選數據' }}</p>
                             </div>
                         </div>
                         <button @click="detailPlayer = null" class="w-12 h-12 bg-[#f7f6f6] rounded-full flex items-center justify-center text-[#999] active-scale hover:bg-[#eee] transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -444,11 +476,11 @@
                             </div>
                             <div class="text-2xl font-black" :class="h.amount >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ h.amount > 0 ? '+' : '' }}{{ h.amount.toLocaleString() }}</div>
                         </div>
-                        <div v-if="getPlayerHistory(detailPlayer).length === 0" class="py-24 text-center opacity-30 italic text-base">這名玩家尚未留下戰績</div>
+                        <div v-if="getPlayerHistory(detailPlayer).length === 0" class="py-24 text-center opacity-30 italic text-base">目前篩選條件下尚無戰績</div>
                     </div>
                     <div class="p-8 md:p-10 pt-5 bg-[#f7f6f6]">
                         <div class="bg-white p-6 rounded-[2rem] text-center shadow-md border border-white">
-                            <div class="text-[10px] text-[#999] font-black uppercase mb-1.5 tracking-widest">累計損益</div>
+                            <div class="text-[10px] text-[#999] font-black uppercase mb-1.5 tracking-widest">損益結算</div>
                             <div class="text-3xl font-black" :class="getFilteredProfit(detailPlayer) >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ getFilteredProfit(detailPlayer).toLocaleString() }}</div>
                         </div>
                     </div>
@@ -475,6 +507,7 @@
 
         const app = createApp({
             setup() {
+                // 基礎常數與狀態
                 const DEFAULT_PLAYERS = [
                     { name: '阿如', category: ['couple'] },
                     { name: '萱萱', category: ['family'] },
@@ -492,36 +525,27 @@
                 const currentMonth = ref(new Date().getMonth());
                 const records = ref({});
                 const players = ref(DEFAULT_PLAYERS);
-
                 const isVerified = ref(false);
                 const passwordInput = ref('');
                 const passwordError = ref(false);
-
                 const newPlayerName = ref('');
                 const newPlayerCategories = ref(['other']);
                 const categoryOptions = [ { label: '家人', value: 'family' }, { label: '情人', value: 'couple' }, { label: '其他', value: 'other' } ];
-
                 const isModalOpen = ref(false);
                 const viewMode = ref('preview');
                 const selectedDate = ref('');
                 const detailPlayer = ref(null);
                 const isMonthDetailOpen = ref(false);
                 const cloudStatus = ref('disconnected');
-
                 const formData = ref({ stakes: '30/10', location: '', rounds: '1', playerStats: {} });
 
-                const firebaseApp = initializeApp(firebaseConfig);
-                const auth = getAuth(firebaseApp);
-                const db = getFirestore(firebaseApp);
-
-                onMounted(async () => {
-                    lucide.createIcons();
-                    await signInAnonymously(auth);
-                    onAuthStateChanged(auth, (u) => {
-                        user.value = u;
-                        if (u) { cloudStatus.value = 'connected'; fetchData(); }
-                    });
-                });
+                // 核心輔助工具
+                const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
+                
+                const getPlayerCategories = (name) => {
+                    const player = players.value.find(p => p.name === name);
+                    return ensureCategoryArray(player?.category);
+                };
 
                 const normalizeDateString = (str) => {
                     if (!str || typeof str !== 'string') return str;
@@ -531,8 +555,26 @@
                 };
 
                 const formatDateKey = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
 
+                const getScoreByName = (date, name) => {
+                    const rec = records.value[date];
+                    return rec && rec.playerStats[name] !== undefined ? rec.playerStats[name] : null;
+                };
+
+                const getCoupleStatsForDay = (date) => {
+                    const rec = records.value[date], res = {};
+                    if (!rec) return res;
+                    if (rec.playerStats['阿如'] !== undefined) res['阿如'] = rec.playerStats['阿如'];
+                    if (rec.playerStats['阿瑋'] !== undefined) res['阿瑋'] = rec.playerStats['阿瑋'];
+                    return res;
+                };
+
+                // Firebase 初始化
+                const firebaseApp = initializeApp(firebaseConfig);
+                const auth = getAuth(firebaseApp);
+                const db = getFirestore(firebaseApp);
+
+                // 資料讀取
                 const fetchData = () => {
                     if (!user.value) return;
                     onSnapshot(collection(db, 'artifacts', appId.value, 'public', 'data', 'records'), (snap) => {
@@ -550,6 +592,28 @@
                     });
                 };
 
+                // 生命週期
+                onMounted(async () => {
+                    lucide.createIcons();
+                    await signInAnonymously(auth);
+                    onAuthStateChanged(auth, (u) => {
+                        user.value = u;
+                        if (u) { cloudStatus.value = 'connected'; fetchData(); }
+                    });
+                });
+
+                // 計算屬性
+                const yearOptions = computed(() => {
+                    const base = new Date().getFullYear();
+                    const list = [];
+                    for(let i = base - 5; i <= base + 5; i++) list.push(i);
+                    Object.keys(records.value).forEach(date => {
+                        const yr = parseInt(date.split('-')[0]);
+                        if(!list.includes(yr)) list.push(yr);
+                    });
+                    return [...new Set(list)].sort((a,b) => a-b);
+                });
+
                 const homeFilteredPlayers = computed(() => players.value.filter(p => {
                     const cats = ensureCategoryArray(p.category);
                     return cats.includes('family') || cats.includes('couple');
@@ -563,13 +627,15 @@
                     Object.entries(records.value).forEach(([date, rec]) => {
                         const parts = date.split('-');
                         const rYear = parseInt(parts[0]), rMonth = parseInt(parts[1]);
-                        if (monthFilter.value === 'all' || rMonth === parseInt(monthFilter.value)) {
-                            Object.entries(rec.playerStats).forEach(([name, amount]) => {
-                                const p = players.value.find(pl => pl.name === name);
-                                const cats = ensureCategoryArray(p?.category);
-                                if (cats.includes('family')) familyProfit += amount;
-                                if (cats.includes('couple')) coupleProfit += amount;
-                            });
+                        if (rYear === currentYear.value) {
+                            if (monthFilter.value === 'all' || rMonth === parseInt(monthFilter.value)) {
+                                Object.entries(rec.playerStats).forEach(([name, amount]) => {
+                                    const p = players.value.find(pl => pl.name === name);
+                                    const cats = ensureCategoryArray(p?.category);
+                                    if (cats.includes('family')) familyProfit += amount;
+                                    if (cats.includes('couple')) coupleProfit += amount;
+                                });
+                            }
                         }
                         if (rYear === currentYear.value && rMonth === (currentMonth.value + 1)) {
                             Object.entries(rec.playerStats).forEach(([name, amount]) => {
@@ -586,7 +652,9 @@
                 const leaderboard = computed(() => {
                     const map = {};
                     players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, totalWinnings: 0, totalLosses: 0, participateCount: 0, winCount: 0, totalRounds: 0 });
-                    Object.values(records.value).forEach(rec => {
+                    Object.entries(records.value).forEach(([date, rec]) => {
+                        const yr = parseInt(date.split('-')[0]);
+                        if (yr !== currentYear.value) return;
                         Object.entries(rec.playerStats).forEach(([name, val]) => {
                             if (!map[name]) return;
                             map[name].totalProfit += val;
@@ -602,6 +670,7 @@
                 const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate());
                 const firstDayOfMonth = computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay());
 
+                // 交互函式
                 const getAnnualProfit = (name) => leaderboard.value.find(l => l.name === name)?.totalProfit || 0;
                 const getAnnualWinnings = (name) => leaderboard.value.find(l => l.name === name)?.totalWinnings || 0;
                 const getAnnualLosses = (name) => leaderboard.value.find(l => l.name === name)?.totalLosses || 0;
@@ -656,7 +725,7 @@
                 };
 
                 const toggleNewPlayerCategory = (val) => {
-                    if (newPlayerCategories.value.includes(val)) newPlayerCategories.value = newPlayerCategories.value.filter(c => c !== val);
+                    if (newPlayerCategories.value.includes(val)) newPlayerCategories.value = newPlayerCategories.value.filter(c => { return c !== val });
                     else newPlayerCategories.value.push(val);
                     if (newPlayerCategories.value.length === 0) newPlayerCategories.value = ['other'];
                 };
@@ -685,13 +754,12 @@
                     await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
                 };
 
-                const getPlayerCategories = (name) => ensureCategoryArray(players.value.find(p => p.name === name)?.category);
-
                 const getPlayerHistory = (name) => {
                     const history = [];
                     Object.entries(records.value).forEach(([date, rec]) => {
-                        if (rec.playerStats[name] !== undefined) {
-                            const rMonth = parseInt(date.split('-')[1]);
+                        const yr = parseInt(date.split('-')[0]);
+                        const rMonth = parseInt(date.split('-')[1]);
+                        if (yr === currentYear.value && rec.playerStats[name] !== undefined) {
                             if (monthFilter.value === 'all' || rMonth === parseInt(monthFilter.value)) {
                                 history.push({ date, amount: rec.playerStats[name], location: rec.location, stakes: rec.stakes });
                             }
@@ -702,11 +770,6 @@
 
                 const getFilteredProfit = (name) => getPlayerHistory(name).reduce((sum, h) => sum + h.amount, 0);
 
-                const getScoreByName = (date, name) => {
-                    const rec = records.value[date];
-                    return rec && rec.playerStats[name] !== undefined ? rec.playerStats[name] : null;
-                };
-
                 const handleManualRefresh = () => { cloudStatus.value = 'syncing'; setTimeout(() => { cloudStatus.value = 'connected'; fetchData(); }, 1000); };
 
                 const downloadImage = () => {
@@ -714,20 +777,19 @@
                     .then(canvas => { const link = document.createElement('a'); link.download = `mahjong-${currentYear.value}-${currentMonth.value+1}.png`; link.href = canvas.toDataURL(); link.click(); });
                 };
 
-                // 修正：增加 isVerified 到 watch 列表中，確保進入編輯模式時圖示會被重新掃描
                 watch([activeTab, isModalOpen, detailPlayer, isVerified], () => { 
                     setTimeout(() => lucide.createIcons(), 50); 
                 });
 
                 return {
-                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players,
+                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players, yearOptions,
                     isModalOpen, viewMode, selectedDate, detailPlayer, isMonthDetailOpen, cloudStatus,
                     formData, homeFilteredPlayers, stats, leaderboard, daysInMonth, firstDayOfMonth,
                     filteredMonthlyStats, cloudStatusText: computed(() => ({'connected':'雲端已同步', 'disconnected':'離線狀態', 'syncing':'正在同步...'}[cloudStatus.value])),
                     newPlayerName, newPlayerCategories, categoryOptions, addPlayer, toggleNewPlayerCategory, updatePlayerCategory, getPlayerCategories, removePlayerFromRecord,
                     prevMonth, nextMonth, handleDateClick, saveRecord, updateStat, toggleWinLoss,
                     getAnnualProfit, getAnnualWinnings, getAnnualLosses, getPartCount, getTotalRounds,
-                    getPlayerHistory, getFilteredProfit, getScoreByName,
+                    getPlayerHistory, getFilteredProfit, getScoreByName, getCoupleStatsForDay,
                     handleManualRefresh, handleQuickAdd, downloadImage, formatDateKey,
                     isVerified, passwordInput, passwordError, checkPassword, handleEditTabClick
                 };
