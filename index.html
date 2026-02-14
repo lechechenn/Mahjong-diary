@@ -151,7 +151,7 @@
                             </div>
                             
                             <div class="mt-1 mb-6 flex flex-col items-center">
-                                <div class="text-[10px] md:text-xs font-black text-[#999] bg-[#f7f6f6] px-2 py-0.5 rounded shadow-sm border border-[#eee] mb-2 leading-none uppercase tracking-widest">年度盈虧</div>
+                                <div class="text-[10px] md:text-xs font-black text-[#999] bg-[#f7f6f6] px-2 py-0.5 rounded shadow-sm border border-[#eee] mb-2 leading-none uppercase tracking-widest">損益統計</div>
                                 <span class="text-3xl md:text-5xl font-black tracking-tighter" :class="getAnnualProfit(player.name) >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
                                     {{ getAnnualProfit(player.name) >= 0 ? '+' : '' }}{{ getAnnualProfit(player.name).toLocaleString() }}
                                 </span>
@@ -218,7 +218,7 @@
                         
                         <div class="grid grid-cols-7 gap-1 md:gap-3 mb-4">
                             <div v-for="empty in firstDayOfMonth" :key="'e-'+empty" class="min-h-[80px]"></div>
-                            <!-- 日曆格按鈕：手機與電腦均為方圓形 -->
+                            <!-- 日曆格按鈕 -->
                             <button v-for="day in daysInMonth" :key="day" @click="handleDateClick(day)"
                                 class="min-h-[125px] sm:min-h-[145px] md:min-h-[175px] h-auto rounded-3xl flex flex-col items-center py-3 sm:py-4 transition-all relative active-scale bg-white border"
                                 :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'border-2 border-[#1893f8] shadow-md z-10' : 'border-[#eee]'">
@@ -227,7 +227,6 @@
                                 
                                 <div v-if="records[formatDateKey(currentYear, currentMonth + 1, day)]" 
                                      class="flex flex-col w-full px-1.5 sm:px-2 gap-1.5 mt-1">
-                                    <!-- 垂直排列：阿如上、阿瑋下 -->
                                     <div class="w-full font-black flex flex-col items-center justify-center px-0.5 sm:px-1 py-1.5 sm:py-2 md:py-3.5 rounded-xl md:rounded-2xl leading-none shadow-sm transition-all"
                                         :class="getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
                                         <span class="text-[9px] sm:text-[11px] md:text-[13px] truncate w-full text-center mb-0.5 md:mb-1 opacity-70">阿如</span>
@@ -250,6 +249,39 @@
                     <div class="grid grid-cols-2 gap-4 px-1 no-export max-w-md mx-auto w-full mt-4">
                         <button @click="downloadImage" class="flex items-center justify-center gap-2 py-5 bg-white border border-[#eee] rounded-[2rem] text-sm font-black shadow-sm active-scale"><i data-lucide="download" class="text-[#1893f8] w-5 h-5"></i> 截圖保存</button>
                         <button @click="isMonthDetailOpen = true" class="flex items-center justify-center gap-2 py-5 bg-white border border-[#eee] rounded-[2rem] text-sm font-black shadow-sm active-scale"><i data-lucide="file-text" class="text-[#1893f8] w-5 h-5"></i> 當月明細</button>
+                    </div>
+
+                    <!-- 新增：當月戰報統計區塊 -->
+                    <div class="bg-white rounded-[3rem] p-8 shadow-sm border border-[#eee] mt-4 space-y-8 animate-in fade-in duration-500">
+                        <div class="flex items-center justify-center gap-2 border-b border-[#f7f6f6] pb-5">
+                            <i data-lucide="award" class="w-6 h-6 text-[#1893f8]"></i>
+                            <h3 class="text-lg font-black text-[#302b28]">{{ currentMonth + 1 }}月 表現總覽</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- 個人月損益列表 -->
+                            <div class="space-y-3">
+                                <div class="text-[11px] font-black text-[#999] uppercase text-center mb-4 tracking-widest">個人月盈虧</div>
+                                <div v-for="p in filteredMonthlyStats" :key="p.name" 
+                                    class="flex justify-between items-center bg-[#f7f6f6] px-5 py-3 rounded-2xl text-sm font-bold">
+                                    <span class="text-[#302b28]">{{ p.name }}</span>
+                                    <span :class="p.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
+                                        {{ p.totalProfit > 0 ? '+' : '' }}{{ p.totalProfit.toLocaleString() }}
+                                    </span>
+                                </div>
+                                <div v-if="filteredMonthlyStats.length === 0" class="py-10 text-center text-[#ccc] italic text-sm">本月暫無戰鬥紀錄</div>
+                            </div>
+                            <!-- 月度排行 -->
+                            <div class="space-y-3 md:border-l md:border-[#f7f6f6] md:pl-8">
+                                <div class="text-[11px] font-black text-[#999] uppercase text-center mb-4 tracking-widest">英雄榜 (本月)</div>
+                                <div v-for="(p, idx) in filteredMonthlyStats" :key="p.name" 
+                                    class="flex items-center gap-4 bg-[#f7f6f6] px-5 py-3 rounded-2xl text-sm font-bold">
+                                    <span class="w-6 h-6 flex items-center justify-center rounded-full text-xs" :class="idx === 0 ? 'bg-yellow-400 text-white shadow-sm' : 'bg-white text-[#999]'">{{ idx + 1 }}</span>
+                                    <span class="flex-1 truncate">{{ p.name }}</span>
+                                    <span :class="p.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ p.totalProfit.toLocaleString() }}</span>
+                                </div>
+                                <div v-if="filteredMonthlyStats.length === 0" class="py-10 text-center text-[#ccc] italic text-sm">本月尚無英雄</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -486,11 +518,21 @@
 
                 const formatDateKey = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
+                const getScoreByName = (date, name) => {
+                    const rec = records.value[date];
+                    return (rec && rec.playerStats && rec.playerStats[name] !== undefined) ? rec.playerStats[name] : null;
+                };
+
+                const getPlayerCategories = (name) => {
+                    const p = players.value.find(pl => pl.name === name);
+                    return ensureCategoryArray(p?.category);
+                };
+
                 // --- 2. 狀態宣告 ---
                 const appId = ref('mahjong-tracker-2026');
                 const user = ref(null);
                 const activeTab = ref('calendar');
-                const monthFilter = ref('all');
+                const monthFilter = ref('all'); // 首頁預設為全年
                 const currentYear = ref(new Date().getFullYear());
                 const currentMonth = ref(new Date().getMonth());
                 const records = ref({});
@@ -509,16 +551,6 @@
                 const formData = ref({ stakes: '30/10', location: '', rounds: '1', playerStats: {} });
 
                 // --- 3. 邏輯方法 ---
-                const getScoreByName = (date, name) => {
-                    const rec = records.value[date];
-                    return (rec && rec.playerStats && rec.playerStats[name] !== undefined) ? rec.playerStats[name] : null;
-                };
-
-                const getPlayerCategories = (name) => {
-                    const p = players.value.find(pl => pl.name === name);
-                    return ensureCategoryArray(p?.category);
-                };
-
                 const checkPassword = () => {
                     if (passwordInput.value === '0302') {
                         isVerified.value = true;
@@ -600,7 +632,88 @@
                     });
                 };
 
-                // --- 4. Firebase 與 生命週期 ---
+                // --- 4. 計算屬性 ---
+                const homeCardTitle = computed(() => {
+                    if (monthFilter.value === 'all') return 'Yearly Balance';
+                    const mName = monthNames[parseInt(monthFilter.value) - 1];
+                    return `${mName} Balance`;
+                });
+
+                const homeFilteredPlayers = computed(() => players.value.filter(p => {
+                    const cats = ensureCategoryArray(p.category);
+                    return cats.includes('family') || cats.includes('couple');
+                }));
+
+                const yearOptions = computed(() => {
+                    const base = new Date().getFullYear();
+                    const list = [];
+                    for(let i = base - 5; i <= base + 5; i++) list.push(i);
+                    Object.keys(records.value).forEach(date => {
+                        const yr = parseInt(date.split('-')[0]);
+                        if(!list.includes(yr)) list.push(yr);
+                    });
+                    return [...new Set(list)].sort((a,b) => a-b);
+                });
+
+                const stats = computed(() => {
+                    let familyProfit = 0, coupleProfit = 0;
+                    Object.entries(records.value).forEach(([date, rec]) => {
+                        const parts = date.split('-');
+                        if (parseInt(parts[0]) === currentYear.value) {
+                            if (monthFilter.value === 'all' || parseInt(parts[1]) === parseInt(monthFilter.value)) {
+                                Object.entries(rec.playerStats).forEach(([name, amount]) => {
+                                    const p = players.value.find(pl => pl.name === name);
+                                    if (p) {
+                                        const cats = ensureCategoryArray(p.category);
+                                        if (cats.includes('family')) familyProfit += amount;
+                                        if (cats.includes('couple')) coupleProfit += amount;
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    return { familyProfit, coupleProfit };
+                });
+
+                const filteredMonthlyStats = computed(() => {
+                    const monthMap = {};
+                    players.value.forEach(p => {
+                        monthMap[p.name] = { name: p.name, totalProfit: 0, participateCount: 0 };
+                    });
+                    Object.entries(records.value).forEach(([date, rec]) => {
+                        const [y, m] = date.split('-').map(Number);
+                        if (y === currentYear.value && m === (currentMonth.value + 1)) {
+                            Object.entries(rec.playerStats).forEach(([name, amount]) => {
+                                if (monthMap[name]) {
+                                    monthMap[name].totalProfit += amount;
+                                    monthMap[name].participateCount += 1;
+                                }
+                            });
+                        }
+                    });
+                    return Object.values(monthMap)
+                        .filter(s => s.participateCount > 0)
+                        .sort((a, b) => b.totalProfit - a.totalProfit);
+                });
+
+                const leaderboard = computed(() => {
+                    const map = {};
+                    players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, totalWinnings: 0, totalLosses: 0, participateCount: 0, winCount: 0, totalRounds: 0 });
+                    Object.entries(records.value).forEach(([date, rec]) => {
+                        if (parseInt(date.split('-')[0]) !== currentYear.value) return;
+                        Object.entries(rec.playerStats).forEach(([name, val]) => {
+                            if (!map[name]) return;
+                            map[name].totalProfit += val;
+                            map[name].participateCount += 1;
+                            map[name].totalRounds += (Number(rec.rounds) || 0);
+                            if (val > 0) { map[name].totalWinnings += val; map[name].winCount += 1; }
+                            else { map[name].totalLosses += val; }
+                        });
+                    });
+                    return Object.values(map).filter(s => s.participateCount > 0).map(s => ({ ...s, winRate: ((s.winCount / s.participateCount) * 100).toFixed(1) })).sort((a, b) => b.totalProfit - a.totalProfit);
+                });
+
+                // --- 5. Firebase 初始化與生命週期 ---
                 const firebaseApp = initializeApp(firebaseConfig);
                 const auth = getAuth(firebaseApp);
                 const db = getFirestore(firebaseApp);
@@ -618,66 +731,13 @@
                     setTimeout(() => lucide.createIcons(), 50); 
                 });
 
-                // --- 5. 回傳暴露給模板 ---
+                // --- 6. 回傳 Exposure ---
                 return {
-                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players,
+                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players, yearOptions,
                     isModalOpen, viewMode, selectedDate, detailPlayer, cloudStatus,
                     formData, checkPassword, handleEditTabClick, handleManualRefresh, handleDateClick, handleQuickAdd, saveRecord, downloadImage, formatDateKey, getScoreByName, getPlayerCategories,
-                    homeCardTitle: computed(() => {
-                        if (monthFilter.value === 'all') return 'Yearly Balance';
-                        const mName = monthNames[parseInt(monthFilter.value) - 1];
-                        return `${mName} Balance`;
-                    }),
-                    homeFilteredPlayers: computed(() => players.value.filter(p => {
-                        const cats = ensureCategoryArray(p.category);
-                        return cats.includes('family') || cats.includes('couple');
-                    })),
-                    yearOptions: computed(() => {
-                        const base = new Date().getFullYear();
-                        const list = [];
-                        for(let i = base - 5; i <= base + 5; i++) list.push(i);
-                        Object.keys(records.value).forEach(date => {
-                            const yr = parseInt(date.split('-')[0]);
-                            if(!list.includes(yr)) list.push(yr);
-                        });
-                        return [...new Set(list)].sort((a,b) => a-b);
-                    }),
-                    stats: computed(() => {
-                        let familyProfit = 0, coupleProfit = 0;
-                        Object.entries(records.value).forEach(([date, rec]) => {
-                            const parts = date.split('-');
-                            if (parseInt(parts[0]) === currentYear.value) {
-                                if (monthFilter.value === 'all' || parseInt(parts[1]) === parseInt(monthFilter.value)) {
-                                    Object.entries(rec.playerStats).forEach(([name, amount]) => {
-                                        const p = players.value.find(pl => pl.name === name);
-                                        if (p) {
-                                            const cats = ensureCategoryArray(p.category);
-                                            if (cats.includes('family')) familyProfit += amount;
-                                            if (cats.includes('couple')) coupleProfit += amount;
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                        return { familyProfit, coupleProfit };
-                    }),
-                    leaderboard: computed(() => {
-                        const map = {};
-                        players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, totalWinnings: 0, totalLosses: 0, participateCount: 0, winCount: 0, totalRounds: 0 });
-                        Object.entries(records.value).forEach(([date, rec]) => {
-                            if (parseInt(date.split('-')[0]) !== currentYear.value) return;
-                            Object.entries(rec.playerStats).forEach(([name, val]) => {
-                                if (!map[name]) return;
-                                map[name].totalProfit += val;
-                                map[name].participateCount += 1;
-                                map[name].totalRounds += (Number(rec.rounds) || 0);
-                                if (val > 0) { map[name].totalWinnings += val; map[name].winCount += 1; }
-                                else { map[name].totalLosses += val; }
-                            });
-                        });
-                        return Object.values(map).filter(s => s.participateCount > 0).map(s => ({ ...s, winRate: ((s.winCount / s.participateCount) * 100).toFixed(1) })).sort((a, b) => b.totalProfit - a.totalProfit);
-                    }),
-                    daysInMonth: computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate()),
+                    homeCardTitle, homeFilteredPlayers, stats, leaderboard, filteredMonthlyStats,
+                    daysInMonth: computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate()), 
                     firstDayOfMonth: computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay()),
                     cloudStatusText: computed(() => ({'connected':'雲端已同步', 'disconnected':'離線狀態', 'syncing':'正在同步...'}[cloudStatus.value])),
                     passwordInput, passwordError, isVerified,
