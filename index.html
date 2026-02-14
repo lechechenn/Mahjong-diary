@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <title>麻將日誌 - 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2canvas: 用於截圖功能 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&display=swap');
+        
+        :root {
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+        body {
+            font-family: 'Noto Serif TC', serif;
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f7f6f6;
+        }
+        .ios-pwa-container {
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+        }
+        /* 隱藏數字輸入器的上下箭頭 */
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] { -moz-appearance: textfield; }
+        .active-scale:active { transform: scale(0.95); transition: transform 0.1s; }
+        
+        /* 轉場動畫 */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        .slide-up-enter-active, .slide-up-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); }
+
+        /* 分類標籤樣式 */
+        .category-chip {
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 900;
+            transition: all 0.2s;
+            border-width: 1px;
+        }
+        /* 隱藏捲軸 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div id="app" class="ios-pwa-container overflow-x-hidden">
+        <!-- iOS 頂部安全區 -->
+        <div class="h-[env(safe-area-inset-top)] w-full bg-[#f7f6f6] sticky top-0 z-50 no-export"></div>
+
+        <div ref="mainContent" class="w-full max-w-4xl mx-auto flex flex-col gap-6 px-4 md:px-8 pb-32">
+            
+            <!-- Header 標題區 -->
+            <div class="pt-8 pb-4 text-center relative">
+                <div class="absolute left-0 top-8 flex gap-2 no-export">
+                    <button @click="handleManualRefresh" class="p-2 text-[#999] active-scale">
+                        <i data-lucide="rotate-cw" :class="{'animate-spin text-[#1893f8]': cloudStatus === 'syncing'}" class="w-[18px]"></i>
+                    </button>
+                </div>
+                <div class="absolute right-0 top-8 flex gap-2 no-export">
+                    <!-- 右上角新增按鈕：點擊進入空白新增介面 -->
+                    <button @click="handleQuickAdd" class="p-2 text-[#999] active-scale">
+                        <i data-lucide="plus" class="w-[20px]"></i>
+                    </button>
+                </div>
+                <h1 class="text-4xl font-black text-[#201f1f] tracking-widest mb-2">麻將日誌</h1>
+                <div class="h-0.5 w-16 bg-[#1893f8]/40 mx-auto rounded-full mb-4"></div>
+                
+                <!-- 雲端同步狀態顯示 -->
+                <div class="flex justify-center no-export">
+                    <div class="inline-flex items-center gap-2 mb-3 px-1 py-0.5 text-[10px] font-bold tracking-widest uppercase text-[#999]">
+                        <div v-if="cloudStatus === 'connected'" class="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        <div v-else-if="cloudStatus === 'disconnected'" class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <i v-else-if="cloudStatus === 'syncing'" data-lucide="refresh-cw" class="w-[12px] animate-spin text-[#1893f8]"></i>
+                        {{ cloudStatusText }}
+                    </div>
+                </div>
+
+                <!-- 篩選器 (僅首頁顯示) -->
+                <div v-if="activeTab === 'home'" class="flex flex-col sm:flex-row gap-3 mt-4 no-export max-w-md mx-auto w-full px-1">
+                    <div class="flex-1 relative">
+                        <select v-model="monthFilter" class="w-full appearance-none bg-white border border-[#eee] rounded-full px-6 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer">
+                            <option value="all">2026 全年統計</option>
+                            <option v-for="m in 12" :key="m" :value="m">{{ currentYear }} 年 {{ m }} 月</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="text-[#1893f8] absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none w-[14px]"></i>
+                    </div>
+                    <button @click="handleOneClickSync" class="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-xs font-black bg-[#201f1f] text-white shadow-xl active-scale">
+                        <i data-lucide="share-2" class="w-[16px]"></i>
+                        {{ syncFeedback ? '連結已複製！' : '一鍵同步' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- 主要內容區 -->
+            <main class="flex-1">
+                <!-- 分頁 1: 首頁統計看板 -->
+                <div v-if="activeTab === 'home'" class="flex flex-col gap-6 animate-in fade-in duration-500">
+                    <div class="bg-[#1893f8] p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden">
+                        <div class="relative z-10 text-center">
+                            <div class="flex items-center justify-center gap-2 mb-6">
+                                <i data-lucide="trophy" class="w-[20px] text-white/80"></i>
+                                <h2 class="text-xl font-black tracking-widest uppercase">
+                                    {{ currentYear }} {{ monthFilter === 'all' ? 'Balance' : monthFilter + '月 表現' }}
+                                </h2>
+                            </div>
+                            <div class="grid grid-cols-2 gap-8 relative">
+                                <div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-white/20 -translate-x-1/2"></div>
+                                <div class="relative">
+                                    <div class="text-[10px] font-black uppercase opacity-80 mb-1">Family</div>
+                                    <div class="text-3xl font-black tracking-tighter" :class="stats.familyProfit < 0 ? 'text-[#ff4d4d]' : 'text-white'">
+                                        {{ stats.familyProfit >= 0 ? '+' : '' }}{{ stats.familyProfit.toLocaleString() }}
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <div class="text-[10px] font-black uppercase opacity-80 mb-1">Couple</div>
+                                    <div class="text-3xl font-black tracking-tighter" :class="stats.coupleProfit < 0 ? 'text-[#ff4d4d]' : 'text-white'">
+                                        {{ stats.coupleProfit >= 0 ? '+' : '' }}{{ stats.coupleProfit.toLocaleString() }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 首頁玩家清單 (僅過濾家人與情人) -->
+                    <div v-if="homeFilteredPlayers.length > 0" class="grid grid-cols-2 gap-5 items-start mt-2 w-full">
+                        <div class="flex flex-col gap-5">
+                            <div v-for="player in homePlayersGroup1" :key="player.name" class="bg-white p-4 rounded-[2rem] shadow-sm border border-[#eee] flex flex-col active-scale h-full">
+                                <div class="flex items-center justify-start gap-2 mb-3">
+                                    <div class="w-7 h-7 flex-shrink-0 bg-[#f7f6f6] rounded-full flex items-center justify-center text-[#302b28]">
+                                        <i data-lucide="user" class="w-[14px]"></i>
+                                    </div>
+                                    <div class="font-black text-[#302b28] text-sm truncate">{{ player.name }}</div>
+                                </div>
+                                <div class="mt-1 mb-5 flex flex-col items-center">
+                                    <div class="text-[10px] font-black text-[#999] bg-[#f7f6f6] px-2 py-0.5 rounded shadow-sm border border-[#eee] mb-1 leading-none uppercase">年度盈虧</div>
+                                    <span class="text-2xl sm:text-4xl font-black tracking-tighter" :class="getAnnualProfit(player.name) >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
+                                        {{ getAnnualProfit(player.name) >= 0 ? '+' : '' }}{{ getAnnualProfit(player.name).toLocaleString() }}
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-1 pt-3 border-t border-[#f7f6f6]">
+                                    <div class="text-center">
+                                        <div class="text-[6px] font-black text-[#999] uppercase mb-0.5">年度贏錢</div>
+                                        <div class="text-[10px] font-black text-[#1893f8]">+{{ getAnnualWinnings(player.name).toLocaleString() }}</div>
+                                    </div>
+                                    <div class="text-center border-l border-[#f7f6f6]">
+                                        <div class="text-[6px] font-black text-[#999] uppercase mb-0.5">年度輸錢</div>
+                                        <div class="text-[10px] font-black text-[#ff4d4d]">{{ getAnnualLosses(player.name).toLocaleString() }}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex items-center justify-between gap-2">
+                                    <div class="text-[8px] font-bold text-[#999] bg-[#f7f6f6] py-1.5 rounded-lg border border-[#eee] truncate flex-1 text-center">
+                                        {{ getPartCount(player.name) }}場/{{ getTotalRounds(player.name) }}將
+                                    </div>
+                                    <button @click="detailPlayer = player.name" class="flex-1 py-1.5 bg-[#1893f8] text-white text-[9px] font-black uppercase rounded-lg shadow-sm active-scale no-export flex items-center justify-center gap-1">
+                                        <i data-lucide="info" class="w-[10px]"></i>明細
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-5">
+                            <div v-for="player in homePlayersGroup2" :key="player.name" class="bg-white p-4 rounded-[2rem] shadow-sm border border-[#eee] flex flex-col active-scale h-full">
+                                <div class="flex items-center justify-start gap-2 mb-3">
+                                    <div class="w-7 h-7 flex-shrink-0 bg-[#f7f6f6] rounded-full flex items-center justify-center text-[#302b28]">
+                                        <i data-lucide="user" class="w-[14px]"></i>
+                                    </div>
+                                    <div class="font-black text-[#302b28] text-sm truncate">{{ player.name }}</div>
+                                </div>
+                                <div class="mt-1 mb-5 flex flex-col items-center">
+                                    <div class="text-[10px] font-black text-[#999] bg-[#f7f6f6] px-2 py-0.5 rounded shadow-sm border border-[#eee] mb-1 leading-none uppercase">年度盈虧</div>
+                                    <span class="text-2xl sm:text-4xl font-black tracking-tighter" :class="getAnnualProfit(player.name) >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
+                                        {{ getAnnualProfit(player.name) >= 0 ? '+' : '' }}{{ getAnnualProfit(player.name).toLocaleString() }}
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-1 pt-3 border-t border-[#f7f6f6]">
+                                    <div class="text-center">
+                                        <div class="text-[6px] font-black text-[#999] uppercase mb-0.5">年度贏錢</div>
+                                        <div class="text-[10px] font-black text-[#1893f8]">+{{ getAnnualWinnings(player.name).toLocaleString() }}</div>
+                                    </div>
+                                    <div class="text-center border-l border-[#f7f6f6]">
+                                        <div class="text-[6px] font-black text-[#999] uppercase mb-0.5">年度輸錢</div>
+                                        <div class="text-[10px] font-black text-[#ff4d4d]">{{ getAnnualLosses(player.name).toLocaleString() }}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex items-center justify-between gap-2">
+                                    <div class="text-[8px] font-bold text-[#999] bg-[#f7f6f6] py-1.5 rounded-lg border border-[#eee] truncate flex-1 text-center">
+                                        {{ getPartCount(player.name) }}場/{{ getTotalRounds(player.name) }}將
+                                    </div>
+                                    <button @click="detailPlayer = player.name" class="flex-1 py-1.5 bg-[#1893f8] text-white text-[9px] font-black uppercase rounded-lg shadow-sm active-scale no-export flex items-center justify-center gap-1">
+                                        <i data-lucide="info" class="w-[10px]"></i>明細
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="py-20 text-center opacity-30 italic">正在載入家人或情人名單...</div>
+                </div>
+
+                <!-- 分頁 2: 日曆紀錄 -->
+                <div v-if="activeTab === 'calendar'" class="flex flex-col gap-4 animate-in fade-in duration-500">
+                    <div class="bg-white rounded-[2.5rem] p-1.5 md:p-8 border border-[#eee]/50 shadow-sm">
+                        <div class="flex items-center justify-between px-2 py-4 mb-4">
+                            <button @click="prevMonth" class="w-10 h-10 flex items-center justify-center rounded-full bg-white text-[#1893f8] border border-[#eee] active-scale"><i data-lucide="chevron-left" class="w-[20px]"></i></button>
+                            <div class="flex flex-col items-center">
+                                <span class="text-xl font-black text-[#1893f8] tracking-widest">{{ currentYear }}</span>
+                                <div class="text-lg font-bold text-[#201f1f] mt-1">{{ currentMonth + 1 }}月紀錄表</div>
+                            </div>
+                            <button @click="nextMonth" class="w-10 h-10 flex items-center justify-center rounded-full bg-white text-[#1893f8] border border-[#eee] active-scale"><i data-lucide="chevron-right" class="w-[20px]"></i></button>
+                        </div>
+                        
+                        <div class="grid grid-cols-7 gap-1 mb-2">
+                            <div v-for="d in ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']" :key="d" class="text-center text-[9px] font-black tracking-widest text-[#1893f8] opacity-50">{{ d }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-7 gap-1 sm:gap-2 mb-4">
+                            <div v-for="empty in firstDayOfMonth" :key="'e-'+empty" class="min-h-[72px]"></div>
+                            <button v-for="day in daysInMonth" :key="day" @click="handleDateClick(day)"
+                                class="min-h-[78px] rounded-2xl flex flex-col items-center justify-center py-1 transition-all relative active-scale bg-white border"
+                                :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'border-2 border-[#1893f8] shadow-md' : 'border-[#eee]'">
+                                <span class="text-[11px] font-black absolute top-1" :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'text-[#1893f8]' : 'text-[#999]'">{{ day }}</span>
+                                
+                                <!-- 日曆內玩家內容：長方形圓角 (rounded-md) + 左右兩欄 -->
+                                <div v-if="records[formatDateKey(currentYear, currentMonth + 1, day)]" class="grid grid-cols-2 w-full px-0.5 gap-[2px] mt-3">
+                                    <div v-for="(val, name) in getCoupleStatsForDay(formatDateKey(currentYear, currentMonth + 1, day))" :key="name" 
+                                        class="text-[10px] font-black flex flex-col items-center justify-center px-1 py-1 rounded-md leading-tight"
+                                        :class="val > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : val < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
+                                        <span class="truncate w-full text-center">{{ name }}</span>
+                                        <span class="font-mono truncate w-full text-center">{{ val > 0 ? '+' : '' }}{{ val }}</span>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 px-1 no-export">
+                        <button @click="downloadImage" class="flex items-center justify-center gap-2 py-4 bg-white border border-[#eee] rounded-3xl text-sm font-black shadow-sm active-scale"><i data-lucide="download" class="text-[#1893f8] w-[18px]"></i> 截圖保存</button>
+                        <button @click="isMonthDetailOpen = true" class="flex items-center justify-center gap-2 py-4 bg-white border border-[#eee] rounded-3xl text-sm font-black shadow-sm active-scale"><i data-lucide="file-text" class="text-[#1893f8] w-[18px]"></i> 當月明細</button>
+                    </div>
+
+                    <!-- 當月表現與排行區塊 -->
+                    <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-[#eee] mt-4 space-y-6 duration-500 animate-in slide-in-from-bottom-2">
+                        <div class="flex items-center justify-center gap-2 border-b border-[#f7f6f6] pb-4">
+                            <i data-lucide="award" class="w-[20px] text-[#1893f8]"></i>
+                            <h3 class="font-black text-[#302b28]">{{ currentMonth + 1 }}月 表現與排行</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <div class="text-[10px] font-black text-[#999] uppercase text-center mb-3">當月盈虧</div>
+                                <div v-for="p in filteredMonthlyStats" :key="p.name" 
+                                    class="flex justify-between items-center bg-[#f7f6f6] px-3 py-2 rounded-xl text-[11px] font-bold">
+                                    <span class="text-[#302b28]">{{ p.name }}</span>
+                                    <span :class="p.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
+                                        {{ p.totalProfit > 0 ? '+' : '' }}{{ p.totalProfit.toLocaleString() }}
+                                    </span>
+                                </div>
+                                <div v-if="filteredMonthlyStats.length === 0" class="text-center py-4 opacity-30 italic text-[10px]">無紀錄</div>
+                            </div>
+                            <div class="space-y-2 border-l border-[#f7f6f6] pl-4">
+                                <div class="text-[10px] font-black text-[#999] uppercase text-center mb-3">英雄榜</div>
+                                <div v-for="(p, idx) in stats.calLeaderboard" :key="p.name" 
+                                    class="flex items-center gap-2 bg-[#f7f6f6] px-3 py-2 rounded-xl text-[11px] font-bold">
+                                    <span class="w-4 h-4 flex items-center justify-center rounded-full text-[9px]" 
+                                        :class="idx === 0 ? 'bg-yellow-400 text-white' : 'bg-white text-[#999]'">
+                                        {{ idx + 1 }}
+                                    </span>
+                                    <span class="flex-1 truncate">{{ p.name }}</span>
+                                    <span :class="p.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
+                                        {{ p.totalProfit.toLocaleString() }}
+                                    </span>
+                                </div>
+                                <div v-if="stats.calLeaderboard.length === 0" class="text-center py-4 opacity-30 italic text-[10px]">無紀錄</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分頁 3: 年度排行 -->
+                <div v-if="activeTab === 'leaderboard'" class="flex flex-col bg-white rounded-[2.5rem] shadow-sm border border-[#eee] p-6 md:p-10 animate-in fade-in duration-500">
+                    <div class="flex items-center justify-center gap-3 mb-8 border-b border-[#f7f6f6] pb-6">
+                        <i data-lucide="award" class="w-[24px] text-[#1893f8]"></i>
+                        <h3 class="text-xl font-black text-[#302b28]">{{ currentYear }} 年度排行</h3>
+                    </div>
+                    <div class="space-y-6">
+                        <div v-for="(item, idx) in leaderboard" :key="item.name" class="flex flex-col p-6 rounded-[2.5rem] bg-[#f7f6f6]/50 border border-transparent shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3 overflow-hidden">
+                                    <span class="text-sm font-black italic w-6 h-6 rounded-full flex items-center justify-center" :class="idx === 0 ? 'bg-yellow-400 text-white shadow-sm' : 'bg-white text-[#999]'">{{ idx + 1 }}</span>
+                                    <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#302b28] shadow-sm"><i data-lucide="user" class="w-[16px]"></i></div>
+                                    <span class="font-black text-[#302b28] text-base truncate">{{ item.name }}</span>
+                                </div>
+                                <div class="relative">
+                                    <span class="text-2xl font-black" :class="item.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
+                                        {{ item.totalProfit > 0 ? '+' : '' }}{{ item.totalProfit.toLocaleString() }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mt-2 mb-4 bg-white/40 p-3 rounded-2xl">
+                                <div class="text-center"><div class="text-[7px] font-black text-[#999] mb-1 uppercase">年度贏錢</div><div class="text-sm font-black text-[#1893f8]">+{{ item.totalWinnings.toLocaleString() }}</div></div>
+                                <div class="text-center border-l border-[#eee]"><div class="text-[7px] font-black text-[#999] mb-1 uppercase">年度輸錢</div><div class="text-sm font-black text-[#ff4d4d]">{{ item.totalLosses.toLocaleString() }}</div></div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 py-3 border-t border-white/60 items-center">
+                                <div class="flex flex-col items-center"><span class="text-xs font-black text-[#302b28]">{{ item.participateCount }}場/{{ item.totalRounds }}將</span><span class="text-[7px] text-[#999] font-black uppercase">紀錄</span></div>
+                                <div class="flex flex-col items-center border-x border-[#eee]"><span class="text-xs font-black text-emerald-500">{{ item.winRate }}%</span><span class="text-[7px] text-[#999] font-black uppercase">勝率</span></div>
+                                <button @click="detailPlayer = item.name" class="text-[9px] font-black text-[#1893f8] active-scale">DETAIL</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- 底部導覽列 -->
+        <div class="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#f7f6f6] via-[#f7f6f6] to-transparent pt-4 pb-[env(safe-area-inset-bottom)] no-export">
+            <div class="max-w-[300px] mx-auto mb-6 px-4">
+                <div class="bg-white/80 backdrop-blur-xl p-1 rounded-[2rem] border border-[#eee] shadow-2xl flex items-center gap-1">
+                    <button @click="activeTab = 'home'" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[1.5rem] text-sm font-bold transition-all" :class="activeTab === 'home' ? 'bg-[#e55039] text-white shadow-lg' : 'text-[#999]'">
+                        <i data-lucide="home" class="w-[16px]"></i><span>首頁</span>
+                    </button>
+                    <button @click="activeTab = 'calendar'" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[1.5rem] text-sm font-bold transition-all" :class="activeTab === 'calendar' ? 'bg-[#1893f8] text-white shadow-lg' : 'text-[#999]'">
+                        <i data-lucide="calendar" class="w-[16px]"></i><span>日曆</span>
+                    </button>
+                    <button @click="activeTab = 'leaderboard'" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[1.5rem] text-sm font-bold transition-all" :class="activeTab === 'leaderboard' ? 'bg-[#1893f8] text-white shadow-lg' : 'text-[#999]'">
+                        <i data-lucide="list-ordered" class="w-[16px]"></i><span>排行</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 戰報彈窗 (錄入與預覽) -->
+        <transition name="fade">
+            <div v-if="isModalOpen" class="fixed inset-0 bg-[#302b28]/60 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+                <div class="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 pb-[calc(2rem+env(safe-area-inset-bottom))] relative">
+                    <div class="flex justify-between items-start mb-8 pb-4 border-b border-[#f7f6f6]">
+                        <div>
+                            <h3 class="text-xl font-black text-[#1893f8]">{{ viewMode === 'edit' ? '錄入戰報' : '戰況紀錄' }}</h3>
+                            <input v-if="viewMode === 'edit'" type="date" v-model="selectedDate" class="mt-2 text-sm font-black bg-[#f7f6f6] px-3 py-1 rounded-lg border-none focus:ring-1 ring-[#1893f8]">
+                            <p v-else class="text-[10px] font-bold text-[#999] uppercase font-mono mt-1">{{ selectedDate }}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex bg-[#f7f6f6] p-1 rounded-xl">
+                                <button @click="viewMode = 'preview'" class="px-4 py-1.5 rounded-lg text-xs font-bold" :class="viewMode === 'preview' ? 'bg-[#1893f8] text-white shadow-sm' : 'text-[#999]'">預覽</button>
+                                <button @click="viewMode = 'edit'" class="px-4 py-1.5 rounded-lg text-xs font-bold" :class="viewMode === 'edit' ? 'bg-[#1893f8] text-white shadow-sm' : 'text-[#999]'">編輯</button>
+                            </div>
+                            <!-- 右上角關閉 X 鈕 -->
+                            <button @click="isModalOpen = false" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#f7f6f6] text-[#999] active-scale">
+                                <i data-lucide="x" class="w-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 編輯模式 -->
+                    <div v-if="viewMode === 'edit'" class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-[10px] font-black text-[#999] block mb-2 uppercase tracking-widest">籌碼</label><select v-model="formData.stakes" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"><option value="30/10">30/10</option><option value="50/20">50/20</option><option value="100/20">100/20</option></select></div>
+                            <div><label class="text-[10px] font-black text-[#999] block uppercase mb-2 tracking-widest">將數</label><input type="number" step="0.5" v-model="formData.rounds" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"></div>
+                        </div>
+                        <div><label class="text-[10px] font-black text-[#999] block uppercase mb-2 tracking-widest">地點</label><input type="text" v-model="formData.location" placeholder="場所" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"></div>
+                        
+                        <!-- 玩家數據區塊 -->
+                        <div class="bg-[#f7f6f6] p-4 rounded-3xl border border-[#eee]">
+                            <label class="text-[10px] font-black text-[#999] block mb-2 uppercase tracking-widest">管理玩家 (複選分類)</label>
+                            <div class="flex gap-2 mb-4">
+                                <input type="text" placeholder="姓名" class="w-24 flex-shrink-0 bg-white rounded-xl px-3 py-2 text-sm font-bold border-none focus:ring-1 ring-[#1893f8]" v-model="newPlayerName" @keypress.enter="addPlayer">
+                                <div class="flex-1 flex gap-1 overflow-x-auto no-scrollbar">
+                                    <button v-for="cat in categoryOptions" :key="cat.value" 
+                                        @click="toggleNewPlayerCategory(cat.value)"
+                                        class="category-chip shrink-0"
+                                        :class="newPlayerCategories.includes(cat.value) ? 'bg-[#1893f8] text-white border-[#1893f8]' : 'bg-white text-[#999] border-[#eee]'">
+                                        {{ cat.label }}
+                                    </button>
+                                </div>
+                                <button @click="addPlayer" class="bg-[#1893f8] text-white p-2 rounded-xl active-scale shadow-md shadow-[#1893f8]/20"><i data-lucide="plus" class="w-[20px]"></i></button>
+                            </div>
+                            
+                            <div class="space-y-2.5">
+                                <div v-for="(val, pName) in formData.playerStats" :key="pName" class="flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-white">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <div class="flex-1 flex flex-col gap-1 overflow-hidden">
+                                            <div class="flex items-center gap-2">
+                                                <button @click="removePlayerFromRecord(pName)" class="text-[#ccc] hover:text-[#e55039] active-scale"><i data-lucide="x" class="w-[16px]"></i></button>
+                                                <span class="text-sm font-black truncate">{{ pName }}</span>
+                                            </div>
+                                            <div class="flex gap-1 overflow-x-auto no-scrollbar">
+                                                <button v-for="cat in categoryOptions" :key="cat.value" 
+                                                    @click="updatePlayerCategory(pName, cat.value)"
+                                                    class="category-chip shrink-0"
+                                                    :class="getPlayerCategories(pName).includes(cat.value) ? 'bg-[#201f1f] text-white border-[#201f1f]' : 'bg-[#f7f6f6] text-[#ccc] border-transparent'">
+                                                    {{ cat.label }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="flex bg-[#f7f6f6] rounded-xl p-1 h-fit shrink-0">
+                                            <button @click="toggleWinLoss(pName, 'win')" class="px-3 py-1 rounded-lg text-[10px] font-black" :class="val > 0 ? 'bg-[#1893f8] text-white' : 'text-[#999]'">贏</button>
+                                            <button @click="toggleWinLoss(pName, 'loss')" class="px-3 py-1 rounded-lg text-[10px] font-black" :class="val < 0 ? 'bg-[#ff4d4d] text-white' : 'text-[#999]'">輸</button>
+                                        </div>
+                                    </div>
+                                    <div class="relative bg-[#f7f6f6] rounded-xl">
+                                        <span class="absolute left-4 top-2 text-[10px] font-bold" :class="val < 0 ? 'text-[#ff4d4d]' : val > 0 ? 'text-[#1893f8]' : 'text-[#999]'">$</span>
+                                        <input type="number" :value="Math.abs(val)" @input="updateStat(pName, $event.target.value)" class="w-full bg-transparent border-none rounded-xl pl-8 pr-4 py-2 text-right text-base font-black">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button @click="isModalOpen = false" class="flex-1 py-4 rounded-2xl font-black bg-[#f7f6f6] text-[#999]">取消</button>
+                            <button @click="saveRecord" class="flex-[2] py-4 rounded-2xl font-black bg-[#1893f8] text-white shadow-xl active-scale">儲存戰報</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 預覽模式 -->
+                    <div v-else class="space-y-6">
+                        <div v-if="records[selectedDate]" class="space-y-6">
+                             <div class="bg-[#f7f6f6] p-5 rounded-3xl grid grid-cols-2 gap-4 shadow-inner">
+                                <div><div class="text-[9px] text-[#999] font-black uppercase mb-1">規格</div><div class="text-sm font-bold">{{ records[selectedDate].stakes }} / {{ records[selectedDate].rounds }}將</div></div>
+                                <div><div class="text-[9px] text-[#999] font-black uppercase mb-1">地點</div><div class="text-sm font-bold">{{ records[selectedDate].location || '未標註' }}</div></div>
+                             </div>
+                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div v-for="(s, n) in records[selectedDate].playerStats" :key="n" class="flex justify-between p-4 bg-white border border-[#eee] rounded-2xl shadow-sm items-center">
+                                    <span class="font-bold">{{ n }}</span>
+                                    <span class="font-black" :class="s >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ s > 0 ? '+' : '' }}{{ s.toLocaleString() }}</span>
+                                </div>
+                             </div>
+                        </div>
+                        <div v-else class="py-20 text-center opacity-30 italic">尚無紀錄</div>
+                        <button @click="isModalOpen = false" class="w-full py-4 rounded-2xl font-black bg-[#201f1f] text-white shadow-xl active-scale">關閉</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- 玩家個人明細彈窗 -->
+        <transition name="fade">
+            <div v-if="detailPlayer" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
+                <div class="bg-white rounded-[3rem] w-full max-w-lg shadow-2xl max-h-[80vh] flex flex-col">
+                    <div class="p-8 pb-4 flex justify-between items-center border-b border-[#f7f6f6]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-[#1893f8]/10 rounded-xl flex items-center justify-center text-[#1893f8]"><i data-lucide="user" class="w-[20px]"></i></div>
+                            <div>
+                                <h3 class="text-xl font-black text-[#201f1f]">{{ detailPlayer }} 明細</h3>
+                                <p class="text-[9px] text-[#999] font-black uppercase mt-0.5">{{ monthFilter === 'all' ? '2026 全年統計' : monthFilter + '月 篩選統計' }}</p>
+                            </div>
+                        </div>
+                        <button @click="detailPlayer = null" class="w-10 h-10 bg-[#f7f6f6] rounded-full flex items-center justify-center text-[#999] active-scale"><i data-lucide="x" class="w-[20px]"></i></button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+                        <div v-for="(h, i) in getPlayerHistory(detailPlayer)" :key="i" class="bg-[#f7f6f6]/50 rounded-2xl p-4 border border-[#eee] flex justify-between items-center">
+                            <div>
+                                <div class="text-xs font-bold text-[#302b28] mb-1">{{ h.date }}</div>
+                                <div class="flex items-center gap-2 text-[10px] text-[#999] font-bold"><i data-lucide="map-pin" class="w-[10px]"></i> {{ h.location || '未標註' }} • {{ h.stakes }}</div>
+                            </div>
+                            <div class="text-lg font-black" :class="h.amount >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ h.amount > 0 ? '+' : '' }}{{ h.amount.toLocaleString() }}</div>
+                        </div>
+                        <div v-if="getPlayerHistory(detailPlayer).length === 0" class="py-20 text-center opacity-30 italic text-sm">尚無紀錄</div>
+                    </div>
+                    <div class="p-8 pt-4 bg-[#f7f6f6] rounded-b-[3rem]">
+                        <div class="bg-white p-4 rounded-2xl text-center shadow-sm">
+                            <div class="text-[9px] text-[#999] font-black uppercase mb-1">結算利潤</div>
+                            <div class="text-xl font-black" :class="getFilteredProfit(detailPlayer) >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ getFilteredProfit(detailPlayer).toLocaleString() }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </div>
+
+    <!-- Firebase SDKs: 使用 CDN 導入 -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, query } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        // --- Firebase 配置 ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_Wc8n7-3AZzDCPRv6DLqjRTeyk9xmyzE",
+            authDomain: "mahjong-2026-c108b.firebaseapp.com",
+            projectId: "mahjong-2026-c108b",
+            storageBucket: "mahjong-2026-c108b.firebasestorage.app",
+            messagingSenderId: "106415682280",
+            appId: "1:106415682280:web:7ee800ae2e789d45eecf5d"
+        };
+
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+
+        const app = createApp({
+            setup() {
+                // 預設玩家名單與初始資料
+                const DEFAULT_PLAYERS = [
+                    { name: '阿如', category: ['couple'] },
+                    { name: '萱萱', category: ['family'] },
+                    { name: '速配', category: ['other'] },
+                    { name: '漢斯', category: ['other'] },
+                    { name: '阿祐', category: ['family'] },
+                    { name: '阿瑋', category: ['couple'] }
+                ];
+
+                // 狀態管理
+                const appId = ref(new URLSearchParams(window.location.search).get('id') || 'mahjong-tracker-2026');
+                const user = ref(null);
+                const activeTab = ref('home');
+                const monthFilter = ref('all');
+                const currentYear = ref(new Date().getFullYear());
+                const currentMonth = ref(new Date().getMonth());
+                const records = ref({});
+                const players = ref(DEFAULT_PLAYERS);
+
+                const newPlayerName = ref('');
+                const newPlayerCategories = ref(['other']);
+                const categoryOptions = [
+                    { label: '家人', value: 'family' },
+                    { label: '情人', value: 'couple' },
+                    { label: '其他', value: 'other' }
+                ];
+
+                const isModalOpen = ref(false);
+                const viewMode = ref('preview');
+                const selectedDate = ref('');
+                const detailPlayer = ref(null);
+                const isMonthDetailOpen = ref(false);
+                const cloudStatus = ref('disconnected');
+                const syncFeedback = ref(false);
+
+                const formData = ref({ stakes: '30/10', location: '', rounds: '1', playerStats: {} });
+
+                // 初始化 Firebase 服務
+                const firebaseApp = initializeApp(firebaseConfig);
+                const auth = getAuth(firebaseApp);
+                const db = getFirestore(firebaseApp);
+
+                onMounted(async () => {
+                    lucide.createIcons();
+                    await signInAnonymously(auth);
+                    onAuthStateChanged(auth, (u) => {
+                        user.value = u;
+                        if (u) {
+                            cloudStatus.value = 'connected';
+                            fetchData();
+                        }
+                    });
+                });
+
+                // 標準化日期字串 (YYYY-MM-DD)
+                const normalizeDateString = (str) => {
+                    if (!str || typeof str !== 'string') return str;
+                    const parts = str.split('-');
+                    if (parts.length !== 3) return str;
+                    return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                };
+
+                const formatDateKey = (y, m, d) => {
+                    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                };
+
+                const ensureCategoryArray = (cat) => {
+                    if (Array.isArray(cat)) return cat;
+                    if (typeof cat === 'string') return [cat];
+                    return ['other'];
+                };
+
+                // 即時監聽 Firestore 資料
+                const fetchData = () => {
+                    if (!user.value) return;
+                    onSnapshot(collection(db, 'artifacts', appId.value, 'public', 'data', 'records'), (snap) => {
+                        const data = {};
+                        snap.forEach(d => { 
+                            const standardKey = normalizeDateString(d.id);
+                            data[standardKey] = d.data(); 
+                        });
+                        records.value = data;
+                    });
+                    onSnapshot(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), (snap) => {
+                        if (snap.exists()) {
+                            const list = snap.data().list || [];
+                            players.value = list.map(p => ({ ...p, category: ensureCategoryArray(p.category) }));
+                        } else {
+                            setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: DEFAULT_PLAYERS });
+                        }
+                    });
+                };
+
+                // 首頁過濾：僅顯示家人與情人
+                const homeFilteredPlayers = computed(() => {
+                    if (!players.value || players.value.length === 0) return [];
+                    return players.value.filter(p => {
+                        const cats = ensureCategoryArray(p.category);
+                        return cats.includes('family') || cats.includes('couple');
+                    });
+                });
+
+                const homePlayersGroup1 = computed(() => homeFilteredPlayers.value.filter((_, i) => i % 2 === 0));
+                const homePlayersGroup2 = computed(() => homeFilteredPlayers.value.filter((_, i) => i % 2 !== 0));
+
+                // 核心統計邏輯
+                const stats = computed(() => {
+                    let familyProfit = 0;
+                    let coupleProfit = 0;
+                    const calMonthMap = {};
+                    players.value.forEach(p => calMonthMap[p.name] = { name: p.name, totalProfit: 0, participateCount: 0 });
+
+                    Object.entries(records.value).forEach(([date, rec]) => {
+                        const parts = date.split('-');
+                        const rYear = parseInt(parts[0]);
+                        const rMonth = parseInt(parts[1]);
+
+                        if (monthFilter.value === 'all' || rMonth === parseInt(monthFilter.value)) {
+                            Object.entries(rec.playerStats).forEach(([name, amount]) => {
+                                const p = players.value.find(pl => pl.name === name);
+                                const cats = ensureCategoryArray(p?.category);
+                                if (cats.includes('family')) familyProfit += amount;
+                                if (cats.includes('couple')) coupleProfit += amount;
+                            });
+                        }
+
+                        if (rYear === currentYear.value && rMonth === (currentMonth.value + 1)) {
+                            Object.entries(rec.playerStats).forEach(([name, amount]) => {
+                                if (calMonthMap[name]) {
+                                    calMonthMap[name].totalProfit += amount;
+                                    calMonthMap[name].participateCount += 1;
+                                }
+                            });
+                        }
+                    });
+
+                    const calLeaderboard = Object.values(calMonthMap)
+                        .filter(s => s.participateCount > 0)
+                        .sort((a, b) => b.totalProfit - a.totalProfit);
+
+                    return { familyProfit, coupleProfit, calMonthMap, calLeaderboard };
+                });
+
+                const filteredMonthlyStats = computed(() => {
+                    return Object.values(stats.value.calMonthMap).filter(s => s.participateCount > 0);
+                });
+
+                const leaderboard = computed(() => {
+                    const map = {};
+                    players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, totalWinnings: 0, totalLosses: 0, participateCount: 0, winCount: 0, totalRounds: 0 });
+                    Object.values(records.value).forEach(rec => {
+                        Object.entries(rec.playerStats).forEach(([name, val]) => {
+                            if (!map[name]) return;
+                            map[name].totalProfit += val;
+                            map[name].participateCount += 1;
+                            map[name].totalRounds += (Number(rec.rounds) || 0);
+                            if (val > 0) { map[name].totalWinnings += val; map[name].winCount += 1; }
+                            else { map[name].totalLosses += val; }
+                        });
+                    });
+                    return Object.values(map)
+                        .filter(s => s.participateCount > 0)
+                        .map(s => ({ ...s, winRate: ((s.winCount / s.participateCount) * 100).toFixed(1) }))
+                        .sort((a, b) => b.totalProfit - a.totalProfit);
+                });
+
+                const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate());
+                const firstDayOfMonth = computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay());
+
+                const getAnnualProfit = (name) => leaderboard.value.find(l => l.name === name)?.totalProfit || 0;
+                const getAnnualWinnings = (name) => leaderboard.value.find(l => l.name === name)?.totalWinnings || 0;
+                const getAnnualLosses = (name) => leaderboard.value.find(l => l.name === name)?.totalLosses || 0;
+                const getPartCount = (name) => leaderboard.value.find(l => l.name === name)?.participateCount || 0;
+                const getTotalRounds = (name) => leaderboard.value.find(l => l.name === name)?.totalRounds || 0;
+
+                const prevMonth = () => { if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; } else { currentMonth.value--; } };
+                const nextMonth = () => { if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; } else { currentMonth.value++; } };
+
+                // 打開戰報彈窗
+                const openRecordModal = (dateStr, forceEdit = false, forceBlank = false) => {
+                    const standardKey = normalizeDateString(dateStr);
+                    selectedDate.value = standardKey;
+                    const existing = records.value[standardKey];
+                    
+                    if (existing && !forceBlank) {
+                        formData.value = JSON.parse(JSON.stringify(existing));
+                        viewMode.value = forceEdit ? 'edit' : 'preview';
+                    } else {
+                        const initialStats = {};
+                        players.value.forEach(p => initialStats[p.name] = 0);
+                        formData.value = { stakes: '30/10', location: '', rounds: '1', playerStats: initialStats };
+                        viewMode.value = 'edit';
+                    }
+                    isModalOpen.value = true;
+                };
+
+                const handleDateClick = (day) => {
+                    const dateStr = formatDateKey(currentYear.value, currentMonth.value + 1, day);
+                    openRecordModal(dateStr, false, false);
+                };
+
+                const updateStat = (name, val) => {
+                    const current = formData.value.playerStats[name];
+                    const isLoss = current < 0;
+                    formData.value.playerStats[name] = isLoss ? -Math.abs(val) : Math.abs(val);
+                };
+
+                const toggleWinLoss = (name, type) => {
+                    const val = Math.abs(formData.value.playerStats[name] || 0);
+                    formData.value.playerStats[name] = type === 'win' ? val : -val;
+                };
+
+                const saveRecord = async () => {
+                    cloudStatus.value = 'syncing';
+                    const standardKey = normalizeDateString(selectedDate.value);
+                    try {
+                        await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', standardKey), formData.value);
+                        isModalOpen.value = false;
+                        cloudStatus.value = 'connected';
+                    } catch (e) { cloudStatus.value = 'disconnected'; }
+                };
+
+                const toggleNewPlayerCategory = (val) => {
+                    if (newPlayerCategories.value.includes(val)) { newPlayerCategories.value = newPlayerCategories.value.filter(c => c !== val); } 
+                    else { newPlayerCategories.value.push(val); }
+                    if (newPlayerCategories.value.length === 0) newPlayerCategories.value = ['other'];
+                };
+
+                const addPlayer = async () => {
+                    const name = newPlayerName.value.trim();
+                    if (!user.value || !name) return;
+                    if (!players.value.find(p => p.name === name)) {
+                        const updatedList = [...players.value, { name, category: newPlayerCategories.value }];
+                        await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
+                    }
+                    formData.value.playerStats[name] = 0;
+                    newPlayerName.value = '';
+                    newPlayerCategories.value = ['other'];
+                };
+
+                const removePlayerFromRecord = (name) => { delete formData.value.playerStats[name]; };
+
+                const updatePlayerCategory = async (name, catVal) => {
+                    const player = players.value.find(p => p.name === name);
+                    if (!player) return;
+                    let newCats = [...ensureCategoryArray(player.category)];
+                    if (newCats.includes(catVal)) { newCats = newCats.filter(c => c !== catVal); } 
+                    else { newCats.push(catVal); }
+                    if (newCats.length === 0) newCats = ['other'];
+                    const updatedList = players.value.map(p => p.name === name ? { ...p, category: newCats } : p);
+                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
+                };
+
+                const getPlayerCategories = (name) => {
+                    const p = players.value.find(p => p.name === name);
+                    return ensureCategoryArray(p?.category);
+                };
+
+                const getPlayerHistory = (name) => {
+                    const history = [];
+                    Object.entries(records.value).forEach(([date, rec]) => {
+                        const m = parseInt(date.split('-')[1]);
+                        if ((monthFilter.value === 'all' || m === parseInt(monthFilter.value)) && rec.playerStats[name] !== undefined) {
+                            history.push({ date, amount: rec.playerStats[name], location: rec.location, stakes: rec.stakes });
+                        }
+                    });
+                    return history.reverse();
+                };
+
+                const getFilteredProfit = (name) => getPlayerHistory(name).reduce((sum, h) => sum + h.amount, 0);
+
+                const getCoupleStatsForDay = (date) => {
+                    const rec = records.value[normalizeDateString(date)];
+                    if (!rec) return {};
+                    const res = {};
+                    Object.entries(rec.playerStats).forEach(([n, s]) => {
+                        const p = players.value.find(p => p.name === n);
+                        if (ensureCategoryArray(p?.category).includes('couple')) res[n] = s;
+                    });
+                    return res;
+                };
+
+                // 相容性複製功能 (解決 Permission Policy 錯誤)
+                const handleOneClickSync = () => {
+                    const url = `${window.location.origin}${window.location.pathname}?id=${appId.value}`;
+                    const textArea = document.createElement("textarea");
+                    textArea.value = url;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-9999px";
+                    textArea.style.top = "0";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        const successful = document.execCommand('copy');
+                        if (successful) {
+                            syncFeedback.value = true;
+                            setTimeout(() => syncFeedback.value = false, 2000);
+                        }
+                    } catch (err) { console.error('無法複製連結', err); }
+                    document.body.removeChild(textArea);
+                };
+
+                const handleManualRefresh = () => {
+                    cloudStatus.value = 'syncing';
+                    setTimeout(() => { cloudStatus.value = 'connected'; fetchData(); }, 1000);
+                };
+
+                const handleQuickAdd = () => {
+                    const now = new Date();
+                    const todayStr = formatDateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
+                    openRecordModal(todayStr, true, true);
+                };
+
+                const downloadImage = () => {
+                    const main = document.querySelector('#app');
+                    html2canvas(main, {
+                        backgroundColor: '#f7f6f6',
+                        ignoreElements: (el) => el.classList.contains('no-export')
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `mahjong-${currentYear.value}-${currentMonth.value+1}.png`;
+                        link.href = canvas.toDataURL();
+                        link.click();
+                    });
+                };
+
+                // 重新初始化 Lucide 圖示
+                watch([activeTab, isModalOpen, detailPlayer], () => { 
+                    setTimeout(() => lucide.createIcons(), 10); 
+                });
+
+                return {
+                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players,
+                    isModalOpen, viewMode, selectedDate, detailPlayer, isMonthDetailOpen, cloudStatus,
+                    formData, homeFilteredPlayers, homePlayersGroup1, homePlayersGroup2, stats, leaderboard, daysInMonth, firstDayOfMonth,
+                    filteredMonthlyStats, syncFeedback, cloudStatusText: computed(() => ({'connected':'雲端同步', 'disconnected':'離線', 'syncing':'同步中'}[cloudStatus.value])),
+                    newPlayerName, newPlayerCategories, categoryOptions, addPlayer, removePlayerFromRecord, 
+                    toggleNewPlayerCategory, updatePlayerCategory, getPlayerCategories,
+                    prevMonth, nextMonth, openRecordModal, handleDateClick, saveRecord, updateStat, toggleWinLoss,
+                    getAnnualProfit, getAnnualWinnings, getAnnualLosses, getPartCount, getTotalRounds,
+                    getPlayerHistory, getFilteredProfit, getCoupleStatsForDay, handleOneClickSync,
+                    handleManualRefresh, handleQuickAdd, downloadImage, formatDateKey
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
