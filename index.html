@@ -69,33 +69,35 @@
         <div ref="mainContent" class="w-full max-w-6xl mx-auto flex flex-col gap-4 px-3 md:px-10 pb-32">
             
             <!-- Header 標題列 -->
-            <div class="pt-8 pb-1 text-center relative">
-                <!-- 左上角功能圖示 -->
-                <div class="absolute left-0 top-8 flex items-center gap-1 no-export">
-                    <button @click="handleManualRefresh" class="p-2 text-[#999] active-scale">
-                        <i data-lucide="rotate-cw" :class="{'animate-spin text-[#1893f8]': cloudStatus === 'syncing'}" class="w-5 h-5"></i>
+            <div class="pt-6 sm:pt-8 pb-1 text-center relative">
+                <!-- 左上角功能圖示區：自動調整大小與間距 -->
+                <div class="absolute left-0 top-6 sm:top-8 flex items-center gap-0.5 sm:gap-2 no-export">
+                    <!-- 刷新 -->
+                    <button @click="handleManualRefresh" class="p-1.5 sm:p-2 text-[#999] active-scale">
+                        <i data-lucide="rotate-cw" :class="{'animate-spin text-[#1893f8]': cloudStatus === 'syncing'}" class="w-[18px] h-[18px] sm:w-5 sm:h-5"></i>
                     </button>
+                    <!-- 日曆專用圖示 -->
                     <template v-if="activeTab === 'calendar'">
-                        <button @click="downloadImage" class="p-2 text-[#999] active-scale" title="截圖保存">
-                            <i data-lucide="download" class="w-5 h-5"></i>
+                        <button @click="downloadImage" class="p-1.5 sm:p-2 text-[#999] active-scale" title="截圖保存">
+                            <i data-lucide="download" class="w-[18px] h-[18px] sm:w-5 sm:h-5"></i>
                         </button>
-                        <button @click="isMonthDetailOpen = true" class="p-2 text-[#999] active-scale" title="當月明細">
-                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                        <button @click="isMonthDetailOpen = true" class="p-1.5 sm:p-2 text-[#999] active-scale" title="當月明細">
+                            <i data-lucide="file-text" class="w-[18px] h-[18px] sm:w-5 sm:h-5"></i>
                         </button>
                     </template>
                 </div>
 
                 <!-- 右上角：新增按鈕 -->
-                <div class="absolute right-0 top-8 flex gap-2 no-export">
-                    <button @click="handleQuickAdd" class="p-2 text-[#999] active-scale">
-                        <i data-lucide="plus" class="w-6 h-6"></i>
+                <div class="absolute right-0 top-6 sm:top-8 flex items-center no-export">
+                    <button @click="handleQuickAdd" class="p-1.5 sm:p-2 text-[#999] active-scale">
+                        <i data-lucide="plus" class="w-[22px] h-[22px] sm:w-7 sm:h-7"></i>
                     </button>
                 </div>
 
-                <h1 class="text-4xl font-black text-[#201f1f] tracking-widest mb-2">麻將日誌</h1>
-                <div class="h-0.5 w-16 bg-[#1893f8]/40 mx-auto rounded-full mb-4"></div>
+                <h1 class="text-3xl sm:text-4xl font-black text-[#201f1f] tracking-widest mb-2">麻將日誌</h1>
+                <div class="h-0.5 w-12 sm:w-16 bg-[#1893f8]/40 mx-auto rounded-full mb-4"></div>
                 
-                <!-- 雲端同步狀態 -->
+                <!-- 雲端狀態 -->
                 <div class="flex flex-col items-center no-export">
                     <div class="inline-flex items-center gap-2 mb-1 px-1 py-0.5 text-[10px] font-bold tracking-widest uppercase text-[#999]">
                         <div v-if="cloudStatus === 'connected'" class="w-2 h-2 bg-emerald-500 rounded-full"></div>
@@ -105,8 +107,8 @@
                     </div>
                 </div>
 
-                <!-- 首頁選單：寬度隨文字長短自動調整 -->
-                <div v-if="activeTab === 'home'" class="mt-4 no-export w-full px-1 flex gap-3 justify-center items-center animate-in fade-in slide-in-from-top-1 duration-300">
+                <!-- 時間選單：首頁與排行同步 -->
+                <div v-if="activeTab === 'home' || activeTab === 'leaderboard'" class="mt-4 no-export w-full px-1 flex gap-3 justify-center items-center animate-in fade-in slide-in-from-top-1 duration-300">
                     <div class="relative w-fit">
                         <select v-model="currentYear" class="appearance-none bg-white border border-[#eee] rounded-full pl-6 pr-10 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer text-center min-w-[100px]">
                             <option v-for="y in yearOptions" :key="y" :value="y">{{ y }} 年</option>
@@ -126,7 +128,7 @@
             <main class="flex-1">
                 <!-- Tab 1: 首頁看板 -->
                 <div v-if="activeTab === 'home'" class="flex flex-col gap-6 animate-in fade-in duration-500">
-                    <div class="bg-[#1893f8] p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden max-w-4xl mx-auto w-full transition-all border-b-4 border-[#00000020]">
+                    <div class="bg-[#1893f8] p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden max-w-4xl mx-auto w-full border-b-4 border-[#00000020]">
                         <div class="relative z-10 text-center">
                             <div class="flex items-center justify-center gap-2 mb-6">
                                 <i data-lucide="trophy" class="w-5 h-5 text-white/80"></i>
@@ -168,7 +170,6 @@
                                 </span>
                             </div>
 
-                            <!-- 新增：贏錢及輸錢統計欄位 -->
                             <div class="grid grid-cols-2 gap-1 pt-4 border-t border-[#f7f6f6] w-full mb-6">
                                 <div class="text-center">
                                     <div class="text-[8px] md:text-[10px] font-black text-[#999] uppercase mb-0.5">贏錢</div>
@@ -182,12 +183,10 @@
                             
                             <div class="mt-auto flex flex-col gap-3">
                                 <div class="flex w-full gap-2 no-export">
-                                    <!-- 將數 / 場數 (左側) -->
                                     <div class="flex-[1.5] text-[9px] md:text-[11px] font-bold text-[#999] bg-[#f7f6f6] py-2 rounded-2xl border border-[#eee] text-center">
                                         <span class="block text-[8px] opacity-60 uppercase mb-0.5">將數 / 場數</span>
                                         <span class="text-[#302b28] font-black text-xs md:text-sm">{{ getHomePlayerStats(player.name).rounds }}將 / {{ getHomePlayerStats(player.name).games }}場</span>
                                     </div>
-                                    <!-- 勝率 (右側) -->
                                     <div class="flex-1 text-[9px] md:text-[11px] font-bold text-[#999] bg-[#f7f6f6] py-2 rounded-2xl border border-[#eee] text-center">
                                         <span class="block text-[8px] opacity-60 uppercase mb-0.5">勝率</span>
                                         <span class="text-[#1893f8] font-black text-xs md:text-sm">{{ getHomePlayerStats(player.name).winRate }}%</span>
@@ -201,7 +200,7 @@
                     </div>
                 </div>
 
-                <!-- Tab 2: 日曆紀錄 -->
+                <!-- Tab 2: 日曆紀錄 (全裝置優化) -->
                 <div v-if="activeTab === 'calendar'" class="flex flex-col gap-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
                     <div class="bg-white rounded-[2rem] md:rounded-[3rem] p-2 sm:p-4 md:p-10 border border-[#eee] shadow-sm overflow-hidden">
                         <div class="text-center mb-4">
@@ -260,16 +259,38 @@
                     </div>
                 </div>
 
-                <!-- Tab 3: 排行 -->
+                <!-- Tab 3: 排行 (優化排名數字視覺) -->
                 <div v-if="activeTab === 'leaderboard'" class="flex flex-col gap-6 animate-in fade-in duration-500 max-w-4xl mx-auto w-full transition-all">
                     <div class="bg-white rounded-[3rem] shadow-sm border border-[#eee] p-8 md:p-12">
-                        <div class="flex items-center justify-center gap-3 mb-10 border-b border-[#f7f6f6] pb-8"><i data-lucide="award" class="w-8 h-8 text-[#1893f8]"></i><h3 class="text-2xl font-black text-[#302b28]">年度英雄榜</h3></div>
-                        <div class="flex flex-col gap-6">
-                            <div v-for="(item, idx) in leaderboard" :key="item.name" class="flex flex-col p-8 rounded-[3rem] bg-[#f7f6f6]/50 border border-transparent hover:bg-white hover:border-[#eee] hover:shadow-xl transition-all duration-300">
-                                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6"><div class="flex items-center gap-4 overflow-hidden"><span class="text-base font-black italic w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm" :class="idx === 0 ? 'bg-yellow-400 text-white shadow-sm' : 'bg-white text-[#999]'">{{ idx + 1 }}</span><div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#302b28] shadow-sm shrink-0"><i data-lucide="user" class="w-5 h-5"></i></div><span class="font-black text-[#302b28] text-xl truncate">{{ item.name }}</span></div><div class="relative"><span class="text-4xl font-black tracking-tighter" :class="item.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ item.totalProfit > 0 ? '+' : '' }}{{ item.totalProfit.toLocaleString() }}</span></div></div>
-                                <div class="grid grid-cols-2 gap-4 mt-2 mb-6 bg-white/60 p-5 rounded-3xl text-center shadow-inner"><div><div class="text-[10px] font-black text-[#999] uppercase mb-1">年度盈利</div><div class="text-xl font-black text-[#1893f8]">+{{ item.totalWinnings.toLocaleString() }}</div></div><div class="border-l border-[#eee]"><div class="text-[10px] font-black text-[#999] uppercase mb-1">年度赤字</div><div class="text-xl font-black text-[#ff4d4d]">{{ item.totalLosses.toLocaleString() }}</div></div></div>
-                                <div class="grid grid-cols-3 gap-2 py-4 border-t border-white/60 items-center"><div class="flex flex-col items-center"><span class="text-sm font-black text-[#302b28]">{{ item.participateCount }}場 / {{ item.totalRounds }}將</span><span class="text-[8px] text-[#999] font-black uppercase tracking-widest">紀錄</span></div><div class="flex flex-col items-center border-x border-[#eee]"><span class="text-sm font-black text-emerald-500">{{ item.winRate }}%</span><span class="text-[8px] text-[#999] font-black uppercase tracking-widest">勝率</span></div><button @click="detailPlayer = item.name" class="text-xs font-black text-[#1893f8] active-scale tracking-widest uppercase hover:underline">詳情紀錄</button></div>
+                        <div class="flex items-center justify-center gap-3 mb-10 border-b border-[#f7f6f6] pb-8"><i data-lucide="award" class="w-8 h-8 text-[#1893f8]"></i><h3 class="text-2xl font-black text-[#302b28]">英雄榜</h3></div>
+                        <div class="flex flex-col gap-10 sm:gap-12">
+                            <div v-for="(item, idx) in leaderboard" :key="item.name" class="relative flex flex-col p-8 sm:p-10 rounded-[3rem] bg-[#f7f6f6]/50 border border-transparent hover:bg-white hover:border-[#eee] hover:shadow-xl transition-all duration-300">
+                                <!-- 排名數字：左上角、放大、金銀銅配色 -->
+                                <div class="absolute -top-3 -left-1 sm:-top-5 sm:-left-3 text-5xl sm:text-7xl font-black italic select-none pointer-events-none drop-shadow-sm" 
+                                    :class="idx === 0 ? 'text-[#FFD700]' : idx === 1 ? 'text-[#A0A0A0]' : idx === 2 ? 'text-[#CD7F32]' : 'text-[#d1d1d1]'">
+                                    {{ idx + 1 }}
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 relative z-10">
+                                    <div class="flex items-center gap-4 overflow-hidden pl-6 sm:pl-8">
+                                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#302b28] shadow-sm shrink-0"><i data-lucide="user" class="w-6 h-6"></i></div>
+                                        <span class="font-black text-[#302b28] text-xl truncate">{{ item.name }}</span>
+                                    </div>
+                                    <div class="relative">
+                                        <span class="text-4xl font-black tracking-tighter" :class="item.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ item.totalProfit > 0 ? '+' : '' }}{{ item.totalProfit.toLocaleString() }}</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mt-2 mb-6 bg-white/60 p-5 rounded-3xl text-center shadow-inner relative z-10">
+                                    <div><div class="text-[10px] font-black text-[#999] uppercase mb-1">獲利統計</div><div class="text-xl font-black text-[#1893f8]">+{{ item.totalWinnings.toLocaleString() }}</div></div>
+                                    <div class="border-l border-[#eee]"><div class="text-[10px] font-black text-[#999] uppercase mb-1">損失統計</div><div class="text-xl font-black text-[#ff4d4d]">{{ item.totalLosses.toLocaleString() }}</div></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 py-4 border-t border-white/60 items-center relative z-10">
+                                    <div class="flex flex-col items-center"><span class="text-sm font-black text-[#302b28]">{{ item.participateCount }}場</span><span class="text-[8px] text-[#999] font-black uppercase tracking-widest">紀錄</span></div>
+                                    <div class="flex flex-col items-center border-x border-[#eee]"><span class="text-sm font-black text-emerald-500">{{ item.winRate }}%</span><span class="text-[8px] text-[#999] font-black uppercase tracking-widest">勝率</span></div>
+                                    <button @click="detailPlayer = item.name" class="text-xs font-black text-[#1893f8] active-scale hover:underline">詳情紀錄</button>
+                                </div>
                             </div>
+                            <div v-if="leaderboard.length === 0" class="py-20 text-center text-[#ccc] italic">此篩選條件下目前無玩家數據</div>
                         </div>
                     </div>
                 </div>
@@ -294,6 +315,7 @@
         </div>
 
         <!-- 彈窗組件 -->
+        <!-- 錄入戰報 Modal -->
         <transition name="fade">
             <div v-if="isModalOpen" class="fixed inset-0 bg-[#302b28]/70 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
                 <div class="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl p-6 sm:p-10 pb-[calc(2rem+env(safe-area-inset-bottom))] relative">
@@ -308,26 +330,55 @@
                             <div class="w-full max-w-[240px]"><input type="password" v-model="passwordInput" placeholder="••••" class="w-full bg-[#f7f6f6] rounded-[2rem] px-6 py-5 text-center text-2xl font-black border-none focus:ring-4 ring-[#1893f8]/20 mb-5" @keyup.enter="checkPassword"><button @click="checkPassword" class="w-full py-5 bg-[#1893f8] text-white rounded-[2rem] font-black active-scale shadow-xl">確認</button></div>
                         </div>
                         <div v-else class="space-y-8 animate-in fade-in duration-300">
+                             <!-- 編輯表單內容 -->
                              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div><label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">籌碼</label><select v-model="formData.stakes" class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none"><option value="30/10">30/10</option><option value="50/20">50/20</option><option value="100/20">100/20</option></select></div>
                                 <div><label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">將數</label><input type="number" step="0.5" v-model="formData.rounds" class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none"></div>
                                 <div><label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">地點</label><input type="text" v-model="formData.location" placeholder="..." class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none"></div>
                              </div>
                              <div class="bg-[#f7f6f6] p-6 rounded-[2.5rem]">
-                                <div class="flex gap-3 mb-6"><input type="text" placeholder="新玩家姓名" v-model="newPlayerName" @keypress.enter="addPlayer" class="w-32 bg-white rounded-xl px-4 py-3 text-sm font-bold border-none"><div class="flex-1 flex gap-1 overflow-x-auto no-scrollbar py-1"><button v-for="cat in categoryOptions" :key="cat.value" @click="toggleNewPlayerCategory(cat.value)" class="category-chip shrink-0" :class="newPlayerCategories.includes(cat.value) ? 'bg-[#1893f8] text-white border-[#1893f8]' : 'bg-white text-[#999]'">{{ cat.label }}</button></div><button @click="addPlayer" class="bg-[#1893f8] text-white p-3 rounded-xl active-scale"><i data-lucide="plus" class="w-5 h-5"></i></button></div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div v-for="(val, pName) in formData.playerStats" :key="pName" class="bg-white p-4 rounded-3xl flex flex-col gap-3 shadow-sm border border-white hover:border-[#eee]">
-                                        <div class="flex justify-between items-start"><div class="flex flex-col gap-1 overflow-hidden"><div class="flex items-center gap-2"><button @click="removePlayerFromRecord(pName)" class="text-[#ccc] hover:text-red-500"><i data-lucide="x" class="w-3 h-3"></i></button><span class="font-black text-sm truncate">{{ pName }}</span></div><div class="flex gap-1 overflow-x-auto no-scrollbar"><button v-for="cat in categoryOptions" :key="cat.value" @click="updatePlayerCategory(pName, cat.value)" class="category-chip py-1" :class="getPlayerCategories(pName).includes(cat.value) ? 'bg-[#302b28] text-white' : 'bg-[#f7f6f6] text-[#ccc]'">{{ cat.label }}</button></div></div><div class="flex gap-1 shrink-0"><button @click="toggleWinLoss(pName, 'win')" :class="val > 0 ? 'bg-[#1893f8] text-white' : 'bg-[#f7f6f6] text-[#999]'" class="px-3 py-2 rounded-lg text-[10px] font-black">贏</button><button @click="toggleWinLoss(pName, 'loss')" :class="val < 0 ? 'bg-[#ff4d4d] text-white' : 'bg-[#f7f6f6] text-[#999]'" class="px-3 py-2 rounded-lg text-[10px] font-black">輸</button></div></div>
+                                    <div v-for="(val, pName) in formData.playerStats" :key="pName" class="bg-white p-4 rounded-3xl flex flex-col gap-3 shadow-sm border border-white">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex flex-col gap-1 overflow-hidden">
+                                                <div class="flex items-center gap-2"><button @click="removePlayerFromRecord(pName)" class="text-[#ccc] hover:text-red-500"><i data-lucide="x" class="w-3 h-3"></i></button><span class="font-black text-sm truncate">{{ pName }}</span></div>
+                                                <div class="flex gap-1 overflow-x-auto no-scrollbar"><button v-for="cat in categoryOptions" :key="cat.value" @click="updatePlayerCategory(pName, cat.value)" class="category-chip py-1" :class="getPlayerCategories(pName).includes(cat.value) ? 'bg-[#302b28] text-white' : 'bg-[#f7f6f6] text-[#ccc]'">{{ cat.label }}</button></div>
+                                            </div>
+                                            <div class="flex gap-1 shrink-0"><button @click="toggleWinLoss(pName, 'win')" :class="val > 0 ? 'bg-[#1893f8] text-white shadow-md' : 'bg-[#f7f6f6] text-[#999]'" class="px-3 py-2 rounded-lg text-[10px] font-black transition-all">贏</button><button @click="toggleWinLoss(pName, 'loss')" :class="val < 0 ? 'bg-[#ff4d4d] text-white shadow-md' : 'text-[#999]'" class="px-3 py-2 rounded-lg text-[10px] font-black transition-all">輸</button></div>
+                                        </div>
                                         <input type="number" :value="Math.abs(val)" @input="updateStat(pName, $event.target.value)" class="bg-[#f7f6f6] border-none rounded-xl px-4 py-3 text-right font-black">
                                     </div>
                                 </div>
                              </div>
-                             <div class="flex gap-4"><button @click="isModalOpen = false" class="flex-1 py-5 rounded-[2rem] bg-[#f7f6f6] text-[#999] font-black">取消</button><button @click="saveRecord" class="flex-[2] py-5 rounded-[2rem] bg-[#1893f8] text-white font-black active-scale shadow-xl">儲存</button></div>
+                             <div class="flex gap-4"><button @click="isModalOpen = false" class="flex-1 py-5 rounded-[2rem] bg-[#f7f6f6] text-[#999] font-black">取消</button><button @click="saveRecord" class="flex-[2] py-5 rounded-[2rem] bg-[#1893f8] text-white font-black active-scale shadow-xl">儲存戰報</button></div>
                         </div>
                     </div>
                     <div v-else class="space-y-8 animate-in fade-in duration-300">
-                        <div v-if="records[selectedDate]" class="space-y-8"><div class="bg-[#f7f6f6] p-6 rounded-[2.5rem] grid grid-cols-2 gap-4 text-center"><div class="border-r border-[#eee]"><p class="text-[10px] text-[#999] uppercase">規格</p><p class="font-bold">{{ records[selectedDate].stakes }} / {{ records[selectedDate].rounds }}將</p></div><div><p class="text-[10px] text-[#999] uppercase">地點</p><p class="font-bold truncate px-2">{{ records[selectedDate].location || '未標註' }}</p></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div v-for="(s, n) in records[selectedDate].playerStats" :key="n" class="flex justify-between p-5 bg-white border border-[#eee] rounded-[1.5rem] items-center"><b>{{ n }}</b><span :class="s >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="font-black text-lg">{{ s > 0 ? '+' : '' }}{{ s }}</span></div></div></div>
+                        <!-- 預覽內容 -->
+                        <div v-if="records[selectedDate]" class="space-y-8">
+                             <div class="bg-[#f7f6f6] p-6 rounded-[2.5rem] grid grid-cols-2 gap-4 text-center"><div class="border-r border-[#eee]"><p class="text-[10px] text-[#999] font-black uppercase mb-1">規格</p><p class="font-bold">{{ records[selectedDate].stakes }} / {{ records[selectedDate].rounds }}將</p></div><div><p class="text-[10px] text-[#999] font-black uppercase mb-1">地點</p><p class="font-bold truncate px-2">{{ records[selectedDate].location || '未標註' }}</p></div></div>
+                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div v-for="(s, n) in records[selectedDate].playerStats" :key="n" class="flex justify-between p-5 bg-white border border-[#eee] rounded-[1.5rem] items-center"><b>{{ n }}</b><span :class="s >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="font-black text-lg">{{ s > 0 ? '+' : '' }}{{ s }}</span></div></div>
+                        </div>
                         <button @click="isModalOpen = false" class="w-full py-5 rounded-[2rem] bg-[#201f1f] text-white font-black">關閉</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- 個人明細 Modal -->
+        <transition name="fade">
+            <div v-if="detailPlayer" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
+                <div class="bg-white rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+                    <div class="p-8 pb-5 flex justify-between items-center border-b border-[#f7f6f6]">
+                        <div class="flex items-center gap-4"><i data-lucide="user" class="w-6 h-6 text-[#1893f8]"></i><div><h3 class="text-xl font-black">{{ detailPlayer }} 戰鬥紀錄</h3><p class="text-[10px] text-[#999] font-bold uppercase">{{ monthFilter === 'all' ? '跨年度累計' : currentYear + '年 ' + monthFilter + '月 篩選' }}</p></div></div>
+                        <button @click="detailPlayer = null" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999]"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 md:p-10 space-y-4 no-scrollbar">
+                        <div v-for="(h, i) in getPlayerHistory(detailPlayer)" :key="i" class="bg-[#f7f6f6] rounded-2xl p-5 flex justify-between items-center border border-transparent hover:border-[#eee] hover:bg-white transition-all">
+                            <div><div class="text-sm font-black mb-1">{{ h.date }}</div><div class="text-[10px] text-[#999] font-bold">{{ h.location }} • {{ h.stakes }}</div></div>
+                            <div :class="h.amount >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="text-2xl font-black">{{ h.amount > 0 ? '+' : '' }}{{ h.amount }}</div>
+                        </div>
+                        <div v-if="getPlayerHistory(detailPlayer).length === 0" class="py-20 text-center text-[#ccc] italic text-sm">此篩選條件下目前無戰鬥紀錄</div>
                     </div>
                 </div>
             </div>
@@ -355,18 +406,6 @@
                 </div>
             </div>
         </transition>
-
-        <!-- 個人明細 Modal -->
-        <transition name="fade">
-            <div v-if="detailPlayer" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
-                <div class="bg-white rounded-[3.5rem] w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-                    <div class="p-8 md:p-10 pb-5 flex justify-between items-center border-b border-[#f7f6f6]"><div class="flex items-center gap-4"><i data-lucide="user" class="w-6 h-6 text-[#1893f8]"></i><div><h3 class="text-xl font-black">{{ detailPlayer }} 戰鬥紀錄</h3></div></div><button @click="detailPlayer = null" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999]"><i data-lucide="x" class="w-5 h-5"></i></button></div>
-                    <div class="flex-1 overflow-y-auto p-6 md:p-10 space-y-4 no-scrollbar">
-                        <div v-for="(h, i) in getPlayerHistory(detailPlayer)" :key="i" class="bg-[#f7f6f6] rounded-2xl p-5 flex justify-between items-center border border-transparent hover:border-[#eee] hover:bg-white transition-all"><div><div class="text-sm font-black mb-1">{{ h.date }}</div><div class="text-[10px] text-[#999] font-bold">{{ h.location }} • {{ h.stakes }}</div></div><div :class="h.amount >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="text-2xl font-black">{{ h.amount > 0 ? '+' : '' }}{{ h.amount }}</div></div>
-                    </div>
-                </div>
-            </div>
-        </transition>
     </div>
 
     <script type="module">
@@ -387,7 +426,7 @@
 
         const app = createApp({
             setup() {
-                // --- 1. 工具 ---
+                // 1. 工具與常數
                 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
                 const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
                 const normalizeDateString = (str) => {
@@ -397,8 +436,8 @@
                     return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
                 };
                 const formatDateKey = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                
-                // --- 2. 狀態 ---
+
+                // 2. 狀態
                 const appId = ref('mahjong-tracker-2026');
                 const user = ref(null);
                 const activeTab = ref('calendar');
@@ -417,37 +456,32 @@
                 const detailPlayer = ref(null);
                 const cloudStatus = ref('disconnected');
                 const formData = ref({ stakes: '30/10', location: '', rounds: '1', playerStats: {} });
-                const newPlayerName = ref('');
-                const newPlayerCategories = ref(['other']);
                 const categoryOptions = [ { label: '家人', value: 'family' }, { label: '情人', value: 'couple' }, { label: '其他', value: 'other' } ];
 
-                // --- 3. 邏輯函式 ---
+                // 3. 核心數據邏輯
                 const getScoreByName = (date, name) => {
                     const rec = records.value[date];
-                    return (rec && rec.playerStats && rec.playerStats[name] !== undefined) ? rec.playerStats[name] : null;
+                    if (!rec || !rec.playerStats) return null;
+                    const cleanName = String(name).trim();
+                    return rec.playerStats[cleanName] !== undefined ? rec.playerStats[cleanName] : null;
                 };
 
                 const getPlayerCategories = (name) => {
-                    const p = players.value.find(pl => pl.name === name);
+                    const p = players.value.find(pl => String(pl.name).trim() === String(name).trim());
                     return ensureCategoryArray(p?.category);
-                };
-
-                const checkPassword = () => {
-                    if (passwordInput.value === '0302') { isVerified.value = true; passwordError.value = false; passwordInput.value = ''; }
-                    else { passwordError.value = true; passwordInput.value = ''; }
                 };
 
                 const getHomePlayerStats = (name) => {
                     let games = 0, rounds = 0, wins = 0, winnings = 0, losses = 0;
+                    const cleanName = String(name).trim();
                     Object.entries(records.value).forEach(([date, rec]) => {
                         const [y, m] = date.split('-').map(Number);
                         if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value))) {
-                            if (rec.playerStats && rec.playerStats[name] !== undefined) {
+                            if (rec.playerStats && rec.playerStats[cleanName] !== undefined) {
                                 games++;
                                 rounds += (Number(rec.rounds) || 0);
-                                const val = rec.playerStats[name];
-                                if (val > 0) { wins++; winnings += val; }
-                                else if (val < 0) { losses += val; }
+                                const val = rec.playerStats[cleanName];
+                                if (val > 0) { wins++; winnings += val; } else if (val < 0) { losses += val; }
                             }
                         }
                     });
@@ -455,21 +489,32 @@
                     return { games, rounds, winRate, winnings, losses };
                 };
 
-                const handleEditTabClick = () => { viewMode.value = 'edit'; };
-                const handleManualRefresh = () => { cloudStatus.value = 'syncing'; fetchData(); setTimeout(() => { cloudStatus.value = 'connected'; }, 1000); };
-
-                const fetchData = () => {
-                    if (!user.value) return;
-                    onSnapshot(collection(db, 'artifacts', appId.value, 'public', 'data', 'records'), (snap) => {
-                        const data = {};
-                        snap.forEach(d => { data[normalizeDateString(d.id)] = d.data(); });
-                        records.value = data;
+                const getPlayerHistory = (name) => {
+                    const history = [];
+                    const cleanName = String(name).trim();
+                    Object.entries(records.value).forEach(([date, rec]) => {
+                        const [y, m] = date.split('-').map(Number);
+                        if (y === currentYear.value && rec.playerStats && rec.playerStats[cleanName] !== undefined) {
+                            if (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) {
+                                history.push({ date, amount: rec.playerStats[cleanName], location: rec.location || '未標註', stakes: rec.stakes });
+                            }
+                        }
                     });
-                    onSnapshot(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), (snap) => {
-                        if (snap.exists()) { players.value = snap.data().list.map(p => ({ ...p, category: ensureCategoryArray(p.category) })); }
-                    });
+                    return history.sort((a, b) => b.date.localeCompare(a.date));
                 };
 
+                // 4. 方法定義
+                const handleManualRefresh = () => { 
+                    cloudStatus.value = 'syncing'; fetchData(); setTimeout(() => { if(user.value) cloudStatus.value = 'connected'; }, 1000); 
+                };
+                const checkPassword = () => {
+                    if (passwordInput.value === '0302') { isVerified.value = true; passwordError.value = false; passwordInput.value = ''; }
+                    else { passwordError.value = true; passwordInput.value = ''; }
+                };
+                const handleEditTabClick = () => { viewMode.value = 'edit'; };
+                const prevMonth = () => { if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; } else { currentMonth.value--; } };
+                const nextMonth = () => { if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; } else { currentMonth.value++; } };
+                
                 const handleDateClick = (day) => {
                     const standardKey = formatDateKey(currentYear.value, currentMonth.value + 1, day);
                     selectedDate.value = standardKey;
@@ -501,19 +546,33 @@
                     .then(canvas => { const link = document.createElement('a'); link.download = `mahjong-record.png`; link.href = canvas.toDataURL(); link.click(); });
                 };
 
-                // --- 4. 計算屬性 ---
+                const fetchData = () => {
+                    if (!user.value) return;
+                    onSnapshot(collection(db, 'artifacts', appId.value, 'public', 'data', 'records'), (snap) => {
+                        const data = {};
+                        snap.forEach(d => { data[normalizeDateString(d.id)] = d.data(); });
+                        records.value = data;
+                    });
+                    onSnapshot(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), (snap) => {
+                        if (snap.exists()) { players.value = snap.data().list.map(p => ({ ...p, category: ensureCategoryArray(p.category) })); }
+                    });
+                };
+
+                // --- 5. 計算屬性 ---
                 const leaderboard = computed(() => {
                     const map = {};
-                    players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, totalWinnings: 0, totalLosses: 0, participateCount: 0, winCount: 0, totalRounds: 0 });
+                    players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, totalWinnings: 0, totalLosses: 0, participateCount: 0, winCount: 0 });
                     Object.entries(records.value).forEach(([date, rec]) => {
-                        if (parseInt(date.split('-')[0]) !== currentYear.value) return;
-                        Object.entries(rec.playerStats).forEach(([name, val]) => {
-                            if (!map[name]) return;
-                            map[name].totalProfit += val;
-                            map[name].participateCount += 1;
-                            if (val > 0) { map[name].totalWinnings += val; map[name].winCount += 1; }
-                            else { map[name].totalLosses += val; }
-                        });
+                        const [y, m] = date.split('-').map(Number);
+                        if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value))) {
+                            Object.entries(rec.playerStats).forEach(([name, val]) => {
+                                const cleanName = String(name).trim();
+                                if (!map[cleanName]) return;
+                                map[cleanName].totalProfit += val;
+                                map[cleanName].participateCount += 1;
+                                if (val > 0) { map[cleanName].totalWinnings += val; map[cleanName].winCount += 1; } else { map[cleanName].totalLosses += val; }
+                            });
+                        }
                     });
                     return Object.values(map).filter(s => s.participateCount > 0).map(s => ({ ...s, winRate: ((s.winCount / s.participateCount) * 100).toFixed(1) })).sort((a, b) => b.totalProfit - a.totalProfit);
                 });
@@ -534,14 +593,12 @@
                     stats: computed(() => {
                         let familyProfit = 0, coupleProfit = 0;
                         Object.entries(records.value).forEach(([date, rec]) => {
-                            const parts = date.split('-');
-                            if (parseInt(parts[0]) === currentYear.value) {
-                                if (monthFilter.value === 'all' || parseInt(parts[1]) === parseInt(monthFilter.value)) {
-                                    Object.entries(rec.playerStats).forEach(([name, amount]) => {
-                                        const p = players.value.find(pl => pl.name === name);
-                                        if (p) { const cats = ensureCategoryArray(p.category); if (cats.includes('family')) familyProfit += amount; if (cats.includes('couple')) coupleProfit += amount; }
-                                    });
-                                }
+                            const [y, m] = date.split('-').map(Number);
+                            if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value))) {
+                                Object.entries(rec.playerStats).forEach(([name, amount]) => {
+                                    const p = players.value.find(pl => String(pl.name).trim() === String(name).trim());
+                                    if (p) { const cats = ensureCategoryArray(p.category); if (cats.includes('family')) familyProfit += amount; if (cats.includes('couple')) coupleProfit += amount; }
+                                });
                             }
                         });
                         return { familyProfit, coupleProfit };
@@ -569,51 +626,37 @@
                     daysInMonth: computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate()), 
                     firstDayOfMonth: computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay()),
                     cloudStatusText: computed(() => ({'connected':'雲端已同步', 'disconnected':'離線狀態', 'syncing':'正在同步...'}[cloudStatus.value])),
-                    isVerified, passwordInput, passwordError, categoryOptions, newPlayerName, newPlayerCategories,
+                    isVerified, passwordInput, passwordError, categoryOptions,
                     getFilteredProfit: (name) => {
                         let total = 0;
+                        const cleanName = String(name).trim();
                         Object.entries(records.value).forEach(([date, rec]) => {
-                            if (parseInt(date.split('-')[0]) === currentYear.value && rec.playerStats && rec.playerStats[name] !== undefined) {
-                                if (monthFilter.value === 'all' || parseInt(date.split('-')[1]) === parseInt(monthFilter.value)) total += rec.playerStats[name];
+                            const [y, m] = date.split('-').map(Number);
+                            if (y === currentYear.value && rec.playerStats && rec.playerStats[cleanName] !== undefined) {
+                                if (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) total += rec.playerStats[cleanName];
                             }
                         });
                         return total;
                     },
-                    getPlayerParticipateCount: (name) => Object.values(records.value).filter(r => r.playerStats && r.playerStats[name] !== undefined).length,
-                    getPlayerHistory: (name) => {
-                        const history = [];
-                        Object.entries(records.value).forEach(([date, rec]) => {
-                            if (parseInt(date.split('-')[0]) === currentYear.value && rec.playerStats && rec.playerStats[name] !== undefined) {
-                                if (monthFilter.value === 'all' || parseInt(date.split('-')[1]) === parseInt(monthFilter.value)) history.push({ date, amount: rec.playerStats[name], location: rec.location || '未標註', stakes: rec.stakes });
-                            }
-                        });
-                        return history.reverse();
+                    getPlayerParticipateCount: (name) => {
+                        const cleanName = String(name).trim();
+                        return Object.values(records.value).filter(r => r.playerStats && r.playerStats[cleanName] !== undefined).length;
                     },
-                    addPlayer: async () => {
-                        const name = newPlayerName.value.trim();
-                        if (!user.value || !name) return;
-                        if (!players.value.find(p => p.name === name)) {
-                            const updatedList = [...players.value, { name, category: newPlayerCategories.value }];
-                            await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
-                        }
-                        formData.value.playerStats[name] = 0; newPlayerName.value = '';
-                    },
-                    toggleNewPlayerCategory: (val) => { if (newPlayerCategories.value.includes(val)) newPlayerCategories.value = newPlayerCategories.value.filter(c => c !== val); else newPlayerCategories.value.push(val); },
+                    getPlayerHistory,
                     updatePlayerCategory: async (name, catVal) => {
-                        const player = players.value.find(p => p.name === name);
+                        const player = players.value.find(p => String(p.name).trim() === String(name).trim());
                         if (!player) return;
                         let newCats = [...ensureCategoryArray(player.category)];
                         if (newCats.includes(catVal)) newCats = newCats.filter(c => c !== catVal);
                         else newCats.push(catVal);
                         if (newCats.length === 0) newCats = ['other'];
-                        const updatedList = players.value.map(p => p.name === name ? { ...p, category: newCats } : p);
+                        const updatedList = players.value.map(p => p.name === player.name ? { ...p, category: newCats } : p);
                         await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
                     },
                     removePlayerFromRecord: (name) => { delete formData.value.playerStats[name]; },
                     updateStat: (name, val) => { const isLoss = formData.value.playerStats[name] < 0; formData.value.playerStats[name] = isLoss ? -Math.abs(val) : Math.abs(val); },
                     toggleWinLoss: (name, type) => { const val = Math.abs(formData.value.playerStats[name] || 0); formData.value.playerStats[name] = type === 'win' ? val : -val; },
-                    prevMonth: () => { if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; } else { currentMonth.value--; } },
-                    nextMonth: () => { if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; } else { currentMonth.value++; } }
+                    prevMonth, nextMonth
                 };
             }
         }).mount('#app');
