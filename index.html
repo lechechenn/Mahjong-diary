@@ -167,9 +167,20 @@
                                     {{ getFilteredProfit(player.name) >= 0 ? '+' : '' }}{{ getFilteredProfit(player.name).toLocaleString() }}
                                 </span>
                             </div>
+
+                            <!-- 新增：贏錢及輸錢統計欄位 -->
+                            <div class="grid grid-cols-2 gap-1 pt-4 border-t border-[#f7f6f6] w-full mb-6">
+                                <div class="text-center">
+                                    <div class="text-[8px] md:text-[10px] font-black text-[#999] uppercase mb-0.5">贏錢</div>
+                                    <div class="text-xs md:text-sm font-black text-[#1893f8]">+{{ getHomePlayerStats(player.name).winnings.toLocaleString() }}</div>
+                                </div>
+                                <div class="text-center border-l border-[#f7f6f6]">
+                                    <div class="text-[8px] md:text-[10px] font-black text-[#999] uppercase mb-0.5">輸錢</div>
+                                    <div class="text-xs md:text-sm font-black text-[#ff4d4d]">{{ getHomePlayerStats(player.name).losses.toLocaleString() }}</div>
+                                </div>
+                            </div>
                             
-                            <!-- 更新：欄位對調，勝率改到右邊 -->
-                            <div class="mt-6 flex flex-col gap-3">
+                            <div class="mt-auto flex flex-col gap-3">
                                 <div class="flex w-full gap-2 no-export">
                                     <!-- 將數 / 場數 (左側) -->
                                     <div class="flex-[1.5] text-[9px] md:text-[11px] font-bold text-[#999] bg-[#f7f6f6] py-2 rounded-2xl border border-[#eee] text-center">
@@ -326,11 +337,19 @@
         <transition name="fade">
             <div v-if="isMonthDetailOpen" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
                 <div class="bg-white rounded-[3rem] w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-                    <div class="p-8 pb-5 flex justify-between items-center border-b border-[#f7f6f6]"><div class="flex items-center gap-4"><i data-lucide="file-text" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-xl font-black">{{ currentMonth + 1 }}月 戰鬥明細</h3></div><button @click="isMonthDetailOpen = false" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999]"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+                    <div class="p-8 pb-5 flex justify-between items-center border-b border-[#f7f6f6]">
+                        <div class="flex items-center gap-4"><i data-lucide="file-text" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-xl font-black">{{ currentMonth + 1 }}月 戰鬥明細</h3></div>
+                        <button @click="isMonthDetailOpen = false" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999]"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
                     <div class="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
                         <div v-for="(rec, date) in currentMonthRecords" :key="date" class="bg-[#f7f6f6] rounded-3xl p-5 border border-transparent hover:border-[#eee] hover:bg-white transition-all">
                             <div class="flex justify-between items-start mb-4 pb-2 border-b border-white"><div class="text-sm font-black text-[#302b28]">{{ date }}</div><div class="text-[10px] text-[#999] font-bold">{{ rec.stakes }} • {{ rec.rounds }}將</div></div>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><div v-for="(val, name) in rec.playerStats" :key="name" class="flex flex-col text-center p-2 bg-white rounded-xl shadow-sm border border-white"><span class="text-[8px] text-[#999] font-bold truncate">{{ name }}</span><span :class="val >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="font-black text-xs">{{ val > 0 ? '+' : '' }}{{ val }}</span></div></div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <div v-for="(val, name) in rec.playerStats" :key="name" class="flex flex-col text-center p-2 bg-white rounded-xl shadow-sm border border-white">
+                                    <span class="text-[8px] text-[#999] font-bold truncate">{{ name }}</span>
+                                    <span :class="val >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="font-black text-xs">{{ val > 0 ? '+' : '' }}{{ val }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -368,7 +387,7 @@
 
         const app = createApp({
             setup() {
-                // --- 1. 基本工具 ---
+                // --- 1. 工具 ---
                 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
                 const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
                 const normalizeDateString = (str) => {
@@ -419,19 +438,21 @@
                 };
 
                 const getHomePlayerStats = (name) => {
-                    let games = 0, rounds = 0, wins = 0;
+                    let games = 0, rounds = 0, wins = 0, winnings = 0, losses = 0;
                     Object.entries(records.value).forEach(([date, rec]) => {
                         const [y, m] = date.split('-').map(Number);
                         if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value))) {
                             if (rec.playerStats && rec.playerStats[name] !== undefined) {
                                 games++;
                                 rounds += (Number(rec.rounds) || 0);
-                                if (rec.playerStats[name] > 0) wins++;
+                                const val = rec.playerStats[name];
+                                if (val > 0) { wins++; winnings += val; }
+                                else if (val < 0) { losses += val; }
                             }
                         }
                     });
                     const winRate = games > 0 ? ((wins / games) * 100).toFixed(0) : 0;
-                    return { games, rounds, winRate };
+                    return { games, rounds, winRate, winnings, losses };
                 };
 
                 const handleEditTabClick = () => { viewMode.value = 'edit'; };
