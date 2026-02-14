@@ -42,7 +42,7 @@
         input[type=number] { -moz-appearance: textfield; }
         .active-scale:active { transform: scale(0.95); transition: transform 0.1s; }
         
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-active, .fade-leave-active { transition: opacity-0.3s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
         
         .category-chip {
@@ -106,7 +106,7 @@
                 </div>
             </div>
 
-            <!-- 主內容區域 -->
+            <!-- 主要內容區域 -->
             <main class="flex-1">
                 <!-- Tab 1: 首頁看板 -->
                 <div v-if="activeTab === 'home'" class="flex flex-col gap-6 animate-in fade-in duration-500">
@@ -232,12 +232,12 @@
                                 :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'border-2 border-[#1893f8] shadow-md z-10' : 'border-[#eee]'">
                                 <span class="text-[10px] sm:text-[11px] font-black mb-1" :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'text-[#1893f8]' : 'text-[#999]'">{{ day }}</span>
                                 
-                                <div v-if="records[formatDateKey(currentYear, currentMonth + 1, day)]" class="flex flex-col sm:grid sm:grid-cols-2 w-full px-0.5 gap-[2px]">
+                                <div v-if="records[formatDateKey(currentYear, currentMonth + 1, day)]" class="grid grid-cols-2 w-full px-0.5 gap-[2px] mt-1">
                                     <div v-for="(val, name) in getCoupleStatsForDay(formatDateKey(currentYear, currentMonth + 1, day))" :key="name" 
-                                        class="text-[8px] sm:text-[10px] font-black flex flex-row sm:flex-col items-center justify-center px-0.5 py-0.5 rounded-md leading-tight"
+                                        class="text-[8px] sm:text-[10px] font-black flex flex-col items-center justify-center px-0.5 py-1 rounded-md leading-none"
                                         :class="val > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : val < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
-                                        <span class="truncate w-[15px] sm:w-full text-center">{{ name.substring(0,1) }}</span>
-                                        <span class="font-mono truncate flex-1 sm:w-full text-center">{{ val > 0 ? '+' : '' }}{{ val }}</span>
+                                        <span class="truncate w-full text-center mb-0.5">{{ name }}</span>
+                                        <span class="font-mono truncate w-full text-center">{{ val > 0 ? '+' : '' }}{{ val }}</span>
                                     </div>
                                 </div>
                             </button>
@@ -313,7 +313,7 @@
             </main>
         </div>
 
-        <!-- 底部導覽 -->
+        <!-- 底部導覽列 -->
         <div class="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#f7f6f6] via-[#f7f6f6] to-transparent pt-4 pb-[env(safe-area-inset-bottom)] no-export">
             <div class="max-w-[300px] mx-auto mb-6 px-4">
                 <div class="bg-white/80 backdrop-blur-xl p-1 rounded-[2rem] border border-[#eee] shadow-2xl flex items-center gap-1">
@@ -343,7 +343,7 @@
                         <div class="flex items-center gap-3">
                             <div class="flex bg-[#f7f6f6] p-1 rounded-xl">
                                 <button @click="viewMode = 'preview'" class="px-4 py-1.5 rounded-lg text-xs font-bold" :class="viewMode === 'preview' ? 'bg-[#1893f8] text-white shadow-sm' : 'text-[#999]'">預覽</button>
-                                <button @click="viewMode = 'edit'" class="px-4 py-1.5 rounded-lg text-xs font-bold" :class="viewMode === 'edit' ? 'bg-[#1893f8] text-white shadow-sm' : 'text-[#999]'">編輯</button>
+                                <button @click="handleEditTabClick" class="px-4 py-1.5 rounded-lg text-xs font-bold" :class="viewMode === 'edit' ? 'bg-[#1893f8] text-white shadow-sm' : 'text-[#999]'">編輯</button>
                             </div>
                             <button @click="isModalOpen = false" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#f7f6f6] text-[#999] active-scale">
                                 <i data-lucide="x" class="w-5 h-5"></i>
@@ -351,50 +351,68 @@
                         </div>
                     </div>
 
+                    <!-- 編輯模式：增加密碼驗證鎖 -->
                     <div v-if="viewMode === 'edit'" class="space-y-6">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-[10px] font-black text-[#999] block mb-2 uppercase tracking-widest">籌碼</label><select v-model="formData.stakes" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"><option value="30/10">30/10</option><option value="50/20">50/20</option><option value="100/20">100/20</option></select></div>
-                            <div><label class="text-[10px] font-black text-[#999] block uppercase mb-2 tracking-widest">將數</label><input type="number" step="0.5" v-model="formData.rounds" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"></div>
-                        </div>
-                        <div><label class="text-[10px] font-black text-[#999] block uppercase mb-2 tracking-widest">地點</label><input type="text" v-model="formData.location" placeholder="場所" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"></div>
-                        
-                        <div class="bg-[#f7f6f6] p-4 rounded-3xl border border-[#eee]">
-                            <label class="text-[10px] font-black text-[#999] block mb-2 uppercase tracking-widest">管理玩家 (複選分類)</label>
-                            <div class="flex gap-2 mb-4">
-                                <input type="text" placeholder="姓名" class="w-24 flex-shrink-0 bg-white rounded-xl px-3 py-2 text-sm font-bold border-none focus:ring-1 ring-[#1893f8]" v-model="newPlayerName" @keypress.enter="addPlayer">
-                                <div class="flex-1 flex gap-1 overflow-x-auto no-scrollbar">
-                                    <button v-for="cat in categoryOptions" :key="cat.value" @click="toggleNewPlayerCategory(cat.value)" class="category-chip shrink-0" :class="newPlayerCategories.includes(cat.value) ? 'bg-[#1893f8] text-white border-[#1893f8]' : 'bg-white text-[#999] border-[#eee]'">{{ cat.label }}</button>
-                                </div>
-                                <button @click="addPlayer" class="bg-[#1893f8] text-white p-2 rounded-xl active-scale shadow-md"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                        <!-- 密碼驗證層 -->
+                        <div v-if="!isVerified" class="py-12 flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-300">
+                            <div class="w-16 h-16 bg-[#f7f6f6] rounded-full flex items-center justify-center text-[#1893f8] mb-4 shadow-inner">
+                                <i data-lucide="lock" class="w-8 h-8"></i>
                             </div>
+                            <h4 class="font-black text-lg mb-2">權限驗證</h4>
+                            <p class="text-xs text-[#999] mb-6 uppercase tracking-widest">請輸入密碼以進行新增或編輯</p>
+                            <div class="w-full max-w-[200px]">
+                                <input type="password" v-model="passwordInput" placeholder="PIN CODE" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-4 text-center text-xl font-black border-none focus:ring-2 ring-[#1893f8] mb-4" @keyup.enter="checkPassword">
+                                <button @click="checkPassword" class="w-full py-4 bg-[#1893f8] text-white rounded-2xl font-black shadow-lg active-scale">確認</button>
+                                <p v-if="passwordError" class="text-[10px] text-[#ff4d4d] mt-3 font-bold">密碼錯誤，請重新輸入</p>
+                            </div>
+                        </div>
+
+                        <!-- 實際編輯內容 -->
+                        <div v-else class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-[10px] font-black text-[#999] block mb-2 uppercase tracking-widest">籌碼</label><select v-model="formData.stakes" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"><option value="30/10">30/10</option><option value="50/20">50/20</option><option value="100/20">100/20</option></select></div>
+                                <div><label class="text-[10px] font-black text-[#999] block uppercase mb-2 tracking-widest">將數</label><input type="number" step="0.5" v-model="formData.rounds" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"></div>
+                            </div>
+                            <div><label class="text-[10px] font-black text-[#999] block uppercase mb-2 tracking-widest">地點</label><input type="text" v-model="formData.location" placeholder="場所" class="w-full bg-[#f7f6f6] rounded-2xl px-4 py-3 text-sm font-bold border-none"></div>
                             
-                            <div class="space-y-2.5">
-                                <div v-for="(val, pName) in formData.playerStats" :key="pName" class="flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-white">
-                                    <div class="flex items-center justify-between mb-1.5">
-                                        <div class="flex-1 flex flex-col gap-1 overflow-hidden">
-                                            <div class="flex items-center gap-2">
-                                                <button @click="removePlayerFromRecord(pName)" class="text-[#ccc] hover:text-[#e55039] active-scale"><i data-lucide="x" class="w-4 h-4"></i></button>
-                                                <span class="text-sm font-black truncate">{{ pName }}</span>
-                                            </div>
-                                            <div class="flex gap-1 overflow-x-auto no-scrollbar">
-                                                <button v-for="cat in categoryOptions" :key="cat.value" @click="updatePlayerCategory(pName, cat.value)" class="category-chip shrink-0" :class="getPlayerCategories(pName).includes(cat.value) ? 'bg-[#201f1f] text-white border-[#201f1f]' : 'bg-[#f7f6f6] text-[#ccc] border-transparent'">{{ cat.label }}</button>
-                                            </div>
-                                        </div>
-                                        <div class="flex bg-[#f7f6f6] rounded-xl p-1 h-fit shrink-0">
-                                            <button @click="toggleWinLoss(pName, 'win')" class="px-3 py-1 rounded-lg text-[10px] font-black" :class="val > 0 ? 'bg-[#1893f8] text-white' : 'text-[#999]'">贏</button>
-                                            <button @click="toggleWinLoss(pName, 'loss')" class="px-3 py-1 rounded-lg text-[10px] font-black" :class="val < 0 ? 'bg-[#ff4d4d] text-white' : 'text-[#999]'">輸</button>
-                                        </div>
+                            <div class="bg-[#f7f6f6] p-4 rounded-3xl border border-[#eee]">
+                                <label class="text-[10px] font-black text-[#999] block mb-2 uppercase tracking-widest">管理玩家 (複選分類)</label>
+                                <div class="flex gap-2 mb-4">
+                                    <input type="text" placeholder="姓名" class="w-24 flex-shrink-0 bg-white rounded-xl px-3 py-2 text-sm font-bold border-none focus:ring-1 ring-[#1893f8]" v-model="newPlayerName" @keypress.enter="addPlayer">
+                                    <div class="flex-1 flex gap-1 overflow-x-auto no-scrollbar">
+                                        <button v-for="cat in categoryOptions" :key="cat.value" @click="toggleNewPlayerCategory(cat.value)" class="category-chip shrink-0" :class="newPlayerCategories.includes(cat.value) ? 'bg-[#1893f8] text-white border-[#1893f8]' : 'bg-white text-[#999] border-[#eee]'">{{ cat.label }}</button>
                                     </div>
-                                    <div class="relative bg-[#f7f6f6] rounded-xl">
-                                        <span class="absolute left-4 top-2 text-[10px] font-bold" :class="val < 0 ? 'text-[#ff4d4d]' : val > 0 ? 'text-[#1893f8]' : 'text-[#999]'">$</span>
-                                        <input type="number" :value="Math.abs(val)" @input="updateStat(pName, $event.target.value)" class="w-full bg-transparent border-none rounded-xl pl-8 pr-4 py-2 text-right text-base font-black focus:outline-none">
+                                    <button @click="addPlayer" class="bg-[#1893f8] text-white p-2 rounded-xl active-scale shadow-md"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                                </div>
+                                
+                                <div class="space-y-2.5">
+                                    <div v-for="(val, pName) in formData.playerStats" :key="pName" class="flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-white">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <div class="flex-1 flex flex-col gap-1 overflow-hidden">
+                                                <div class="flex items-center gap-2">
+                                                    <button @click="removePlayerFromRecord(pName)" class="text-[#ccc] hover:text-[#e55039] active-scale"><i data-lucide="x" class="w-4 h-4"></i></button>
+                                                    <span class="text-sm font-black truncate">{{ pName }}</span>
+                                                </div>
+                                                <div class="flex gap-1 overflow-x-auto no-scrollbar">
+                                                    <button v-for="cat in categoryOptions" :key="cat.value" @click="updatePlayerCategory(pName, cat.value)" class="category-chip shrink-0" :class="getPlayerCategories(pName).includes(cat.value) ? 'bg-[#201f1f] text-white border-[#201f1f]' : 'bg-[#f7f6f6] text-[#ccc] border-transparent'">{{ cat.label }}</button>
+                                                </div>
+                                            </div>
+                                            <div class="flex bg-[#f7f6f6] rounded-xl p-1 h-fit shrink-0">
+                                                <button @click="toggleWinLoss(pName, 'win')" class="px-3 py-1 rounded-lg text-[10px] font-black" :class="val > 0 ? 'bg-[#1893f8] text-white' : 'text-[#999]'">贏</button>
+                                                <button @click="toggleWinLoss(pName, 'loss')" class="px-3 py-1 rounded-lg text-[10px] font-black" :class="val < 0 ? 'bg-[#ff4d4d] text-white' : 'text-[#999]'">輸</button>
+                                            </div>
+                                        </div>
+                                        <div class="relative bg-[#f7f6f6] rounded-xl">
+                                            <span class="absolute left-4 top-2 text-[10px] font-bold" :class="val < 0 ? 'text-[#ff4d4d]' : val > 0 ? 'text-[#1893f8]' : 'text-[#999]'">$</span>
+                                            <input type="number" :value="Math.abs(val)" @input="updateStat(pName, $event.target.value)" class="w-full bg-transparent border-none rounded-xl pl-8 pr-4 py-2 text-right text-base font-black focus:outline-none">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button @click="isModalOpen = false" class="flex-1 py-4 rounded-2xl font-black bg-[#f7f6f6] text-[#999]">取消</button>
-                            <button @click="saveRecord" class="flex-[2] py-4 rounded-2xl font-black bg-[#1893f8] text-white shadow-xl active-scale">儲存戰報</button>
+                            <div class="flex gap-3">
+                                <button @click="isModalOpen = false" class="flex-1 py-4 rounded-2xl font-black bg-[#f7f6f6] text-[#999]">取消</button>
+                                <button @click="saveRecord" class="flex-[2] py-4 rounded-2xl font-black bg-[#1893f8] text-white shadow-xl active-scale">儲存戰報</button>
+                            </div>
                         </div>
                     </div>
                     
@@ -489,6 +507,11 @@
                 const currentMonth = ref(new Date().getMonth());
                 const records = ref({});
                 const players = ref(DEFAULT_PLAYERS);
+
+                // 密碼驗證相關
+                const isVerified = ref(false);
+                const passwordInput = ref('');
+                const passwordError = ref(false);
 
                 const newPlayerName = ref('');
                 const newPlayerCategories = ref(['other']);
@@ -612,6 +635,12 @@
                     const standardKey = normalizeDateString(dateStr);
                     selectedDate.value = standardKey;
                     const existing = records.value[standardKey];
+                    
+                    // 重設驗證狀態
+                    isVerified.value = false;
+                    passwordInput.value = '';
+                    passwordError.value = false;
+
                     if (existing && !forceBlank) {
                         formData.value = JSON.parse(JSON.stringify(existing));
                         viewMode.value = forceEdit ? 'edit' : 'preview';
@@ -626,6 +655,24 @@
 
                 const handleDateClick = (day) => openRecordModal(formatDateKey(currentYear.value, currentMonth.value + 1, day), false, false);
                 const handleQuickAdd = () => openRecordModal(formatDateKey(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()), true, true);
+
+                const handleEditTabClick = () => {
+                    if (viewMode.value !== 'edit') {
+                        viewMode.value = 'edit';
+                        // 切換到編輯模式時，如果尚未驗證，會顯示驗證畫面
+                    }
+                };
+
+                const checkPassword = () => {
+                    if (passwordInput.value === '0302') {
+                        isVerified.value = true;
+                        passwordError.value = false;
+                        passwordInput.value = '';
+                    } else {
+                        passwordError.value = true;
+                        passwordInput.value = '';
+                    }
+                };
 
                 const updateStat = (name, val) => {
                     const isLoss = formData.value.playerStats[name] < 0;
@@ -723,7 +770,8 @@
                     prevMonth, nextMonth, handleDateClick, saveRecord, updateStat, toggleWinLoss,
                     getAnnualProfit, getAnnualWinnings, getAnnualLosses, getPartCount, getTotalRounds,
                     getPlayerHistory, getFilteredProfit, getCoupleStatsForDay, handleOneClickSync,
-                    handleManualRefresh, handleQuickAdd, downloadImage, formatDateKey
+                    handleManualRefresh, handleQuickAdd, downloadImage, formatDateKey,
+                    isVerified, passwordInput, passwordError, checkPassword, handleEditTabClick
                 };
             }
         }).mount('#app');
