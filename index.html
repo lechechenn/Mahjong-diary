@@ -18,7 +18,7 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* 關鍵修正：解決載入時閃爍程式碼的問題 */
+        /* 解決載入時閃爍程式碼的問題 */
         [v-cloak] {
             display: none !important;
         }
@@ -58,7 +58,6 @@
     </style>
 </head>
 <body>
-    <!-- 加入 v-cloak 確保 Vue 載入完成前不會顯示任何內容 -->
     <div id="app" class="ios-pwa-container overflow-x-hidden" v-cloak>
         <!-- 頂部安全區 -->
         <div class="h-[env(safe-area-inset-top)] w-full bg-[#f7f6f6] sticky top-0 z-50 no-export"></div>
@@ -209,7 +208,7 @@
                     </div>
                 </div>
 
-                <!-- Tab 2: 日曆紀錄 -->
+                <!-- Tab 2: 日曆紀錄 (優化顯示結構) -->
                 <div v-if="activeTab === 'calendar'" class="flex flex-col gap-4 animate-in fade-in duration-500">
                     <div class="bg-white rounded-[2.5rem] p-1 md:p-8 border border-[#eee]/50 shadow-sm">
                         <div class="flex items-center justify-between px-2 py-4 mb-4">
@@ -228,16 +227,17 @@
                         <div class="grid grid-cols-7 gap-[2px] sm:gap-2 mb-4">
                             <div v-for="empty in firstDayOfMonth" :key="'e-'+empty" class="min-h-[60px]"></div>
                             <button v-for="day in daysInMonth" :key="day" @click="handleDateClick(day)"
-                                class="min-h-[85px] h-auto rounded-xl sm:rounded-2xl flex flex-col items-center py-1.5 transition-all relative active-scale bg-white border"
+                                class="min-h-[100px] h-auto rounded-xl sm:rounded-2xl flex flex-col items-center py-2 transition-all relative active-scale bg-white border"
                                 :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'border-2 border-[#1893f8] shadow-md z-10' : 'border-[#eee]'">
                                 <span class="text-[10px] sm:text-[11px] font-black mb-1" :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'text-[#1893f8]' : 'text-[#999]'">{{ day }}</span>
                                 
+                                <!-- 修正排版：名字與得分上下兩列，並維持左右兩欄 (Grid 2 cols) -->
                                 <div v-if="records[formatDateKey(currentYear, currentMonth + 1, day)]" class="grid grid-cols-2 w-full px-0.5 gap-[2px] mt-1">
                                     <div v-for="(val, name) in getCoupleStatsForDay(formatDateKey(currentYear, currentMonth + 1, day))" :key="name" 
-                                        class="text-[8px] sm:text-[10px] font-black flex flex-col items-center justify-center px-0.5 py-1 rounded-md leading-none"
+                                        class="text-[8px] sm:text-[10px] font-black flex flex-col items-center justify-center px-0.5 py-1.5 rounded-md leading-none shadow-sm"
                                         :class="val > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : val < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
-                                        <span class="truncate w-full text-center mb-0.5">{{ name }}</span>
-                                        <span class="font-mono truncate w-full text-center">{{ val > 0 ? '+' : '' }}{{ val }}</span>
+                                        <span class="truncate w-full text-center mb-0.5 opacity-80">{{ name }}</span>
+                                        <span class="font-mono truncate w-full text-center text-[9px] sm:text-[11px]">{{ val > 0 ? '+' : '' }}{{ val }}</span>
                                     </div>
                                 </div>
                             </button>
@@ -351,7 +351,6 @@
                         </div>
                     </div>
 
-                    <!-- 編輯模式：增加密碼驗證鎖 -->
                     <div v-if="viewMode === 'edit'" class="space-y-6">
                         <!-- 密碼驗證層 -->
                         <div v-if="!isVerified" class="py-12 flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-300">
@@ -418,7 +417,7 @@
                     
                     <div v-else class="space-y-6">
                         <div v-if="records[selectedDate]" class="space-y-6">
-                             <div class="bg-[#f7f6f6] p-5 rounded-3xl grid grid-cols-2 gap-4">
+                             <div class="bg-[#f7f6f6] p-5 rounded-3xl grid grid-cols-2 gap-4 shadow-inner">
                                 <div><div class="text-[9px] text-[#999] font-black uppercase mb-1">規格</div><div class="text-sm font-bold">{{ records[selectedDate].stakes }} / {{ records[selectedDate].rounds }}將</div></div>
                                 <div><div class="text-[9px] text-[#999] font-black uppercase mb-1">地點</div><div class="text-sm font-bold">{{ records[selectedDate].location || '未標註' }}</div></div>
                              </div>
@@ -473,7 +472,9 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        // 修正：從 firebase-auth.js 導入 getAuth
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        // 修正：從 firebase-firestore.js 導入 firestore 相關功能
         import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, query } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
         // Firebase 配置
@@ -508,7 +509,6 @@
                 const records = ref({});
                 const players = ref(DEFAULT_PLAYERS);
 
-                // 密碼驗證相關
                 const isVerified = ref(false);
                 const passwordInput = ref('');
                 const passwordError = ref(false);
@@ -635,12 +635,7 @@
                     const standardKey = normalizeDateString(dateStr);
                     selectedDate.value = standardKey;
                     const existing = records.value[standardKey];
-                    
-                    // 重設驗證狀態
-                    isVerified.value = false;
-                    passwordInput.value = '';
-                    passwordError.value = false;
-
+                    isVerified.value = false; passwordInput.value = ''; passwordError.value = false;
                     if (existing && !forceBlank) {
                         formData.value = JSON.parse(JSON.stringify(existing));
                         viewMode.value = forceEdit ? 'edit' : 'preview';
@@ -655,23 +650,11 @@
 
                 const handleDateClick = (day) => openRecordModal(formatDateKey(currentYear.value, currentMonth.value + 1, day), false, false);
                 const handleQuickAdd = () => openRecordModal(formatDateKey(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()), true, true);
-
-                const handleEditTabClick = () => {
-                    if (viewMode.value !== 'edit') {
-                        viewMode.value = 'edit';
-                        // 切換到編輯模式時，如果尚未驗證，會顯示驗證畫面
-                    }
-                };
+                const handleEditTabClick = () => { if (viewMode.value !== 'edit') viewMode.value = 'edit'; };
 
                 const checkPassword = () => {
-                    if (passwordInput.value === '0302') {
-                        isVerified.value = true;
-                        passwordError.value = false;
-                        passwordInput.value = '';
-                    } else {
-                        passwordError.value = true;
-                        passwordInput.value = '';
-                    }
+                    if (passwordInput.value === '0302') { isVerified.value = true; passwordError.value = false; passwordInput.value = ''; }
+                    else { passwordError.value = true; passwordInput.value = ''; }
                 };
 
                 const updateStat = (name, val) => {
@@ -736,7 +719,7 @@
                     const rec = records.value[date], res = {};
                     if (!rec) return res;
                     Object.entries(rec.playerStats).forEach(([n, s]) => {
-                        if (ensureCategoryArray(players.value.find(p => p.name === n)?.category).includes('couple')) res[n] = s;
+                        if (ensureCategoryArray(players.value.find(p => n === p.name)?.category).includes('couple')) res[n] = s;
                     });
                     return res;
                 };
