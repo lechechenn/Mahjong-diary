@@ -93,17 +93,17 @@
                     </div>
                 </div>
 
-                <!-- 首頁選單 -->
-                <div v-if="activeTab === 'home'" class="mt-4 no-export max-w-[400px] mx-auto w-full px-1 flex gap-2">
-                    <div class="flex-1 relative">
-                        <select v-model="currentYear" class="w-full appearance-none bg-white border border-[#eee] rounded-full px-6 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer text-center">
+                <!-- 首頁選單：寬度隨文字長短自動適配 (w-fit) -->
+                <div v-if="activeTab === 'home'" class="mt-4 no-export w-full px-1 flex gap-3 justify-center items-center animate-in fade-in slide-in-from-top-1 duration-300">
+                    <div class="relative w-fit">
+                        <select v-model="currentYear" class="appearance-none bg-white border border-[#eee] rounded-full pl-6 pr-10 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer text-center min-w-[100px]">
                             <option v-for="y in yearOptions" :key="y" :value="y">{{ y }} 年</option>
                         </select>
                         <i data-lucide="chevron-down" class="text-[#1893f8] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none w-4 h-4"></i>
                     </div>
-                    <div class="flex-[1.5] relative">
-                        <select v-model="monthFilter" class="w-full appearance-none bg-white border border-[#eee] rounded-full px-6 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer text-center">
-                            <option value="all">全年統計</option>
+                    <div class="relative w-fit">
+                        <select v-model="monthFilter" class="appearance-none bg-white border border-[#eee] rounded-full pl-6 pr-10 py-3.5 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer text-center min-w-[85px]">
+                            <option value="all">全年</option>
                             <option v-for="m in 12" :key="m" :value="m">{{ m }} 月</option>
                         </select>
                         <i data-lucide="chevron-down" class="text-[#1893f8] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none w-4 h-4"></i>
@@ -114,13 +114,12 @@
             <main class="flex-1">
                 <!-- Tab 1: 首頁看板 -->
                 <div v-if="activeTab === 'home'" class="flex flex-col gap-6 animate-in fade-in duration-500">
-                    <div class="bg-[#1893f8] p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden max-w-4xl mx-auto w-full transition-all">
+                    <div class="bg-[#1893f8] p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden max-w-4xl mx-auto w-full transition-all border-b-4 border-[#00000020]">
                         <div class="relative z-10 text-center">
                             <div class="flex items-center justify-center gap-2 mb-6">
                                 <i data-lucide="trophy" class="w-5 h-5 text-white/80"></i>
-                                <h2 class="text-xl font-black tracking-widest uppercase">
-                                    {{ monthFilter === 'all' ? 'Yearly Balance' : monthFilter + '月 表現' }}
-                                </h2>
+                                <!-- 預設標題 Yearly Balance -->
+                                <h2 class="text-xl font-black tracking-widest">{{ homeCardTitle }}</h2>
                             </div>
                             <div class="grid grid-cols-2 gap-8 relative">
                                 <div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-white/20 -translate-x-1/2"></div>
@@ -151,7 +150,7 @@
                             </div>
                             
                             <div class="mt-1 mb-6 flex flex-col items-center">
-                                <div class="text-[10px] md:text-xs font-black text-[#999] bg-[#f7f6f6] px-2 py-0.5 rounded shadow-sm border border-[#eee] mb-2 leading-none uppercase tracking-widest">年度盈虧</div>
+                                <div class="text-[10px] md:text-xs font-black text-[#999] bg-[#f7f6f6] px-2 py-0.5 rounded shadow-sm border border-[#eee] mb-2 leading-none uppercase tracking-widest">損益統計</div>
                                 <span class="text-3xl md:text-5xl font-black tracking-tighter" :class="getAnnualProfit(player.name) >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
                                     {{ getAnnualProfit(player.name) >= 0 ? '+' : '' }}{{ getAnnualProfit(player.name).toLocaleString() }}
                                 </span>
@@ -184,17 +183,15 @@
                 <div v-if="activeTab === 'calendar'" class="flex flex-col gap-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
                     <div class="bg-white rounded-[3rem] p-4 md:p-10 border border-[#eee] shadow-sm">
                         
-                        <!-- 標題 Monthly Records -->
                         <div class="text-center mb-4">
                             <h2 class="text-lg md:text-xl font-black text-[#302b28] tracking-[0.15em]">Monthly Records</h2>
                         </div>
 
-                        <!-- 日曆控制區 -->
-                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 px-4 pb-6 mb-2">
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-4 px-4 pb-6 mb-2 border-b border-[#f7f6f6]">
                             <div class="flex items-center gap-4 w-full md:w-auto justify-center">
                                 <button @click="prevMonth" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#1893f8] text-white border border-[#1893f8] active-scale shadow-md"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
                                 
-                                <div class="flex items-center gap-1 bg-[#f7f6f6] px-4 py-2 rounded-2xl text-[#1893f8] font-black">
+                                <div class="flex items-center gap-1 bg-[#f7f6f6] px-5 py-2 rounded-2xl text-[#1893f8] font-black">
                                     <div class="relative">
                                         <select v-model="currentYear" class="appearance-none bg-transparent border-none px-2 py-1 text-base font-black focus:ring-0 cursor-pointer text-center">
                                             <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option>
@@ -212,7 +209,7 @@
                             </div>
                         </div>
                         
-                        <div class="grid grid-cols-7 gap-1 mb-4">
+                        <div class="grid grid-cols-7 gap-1 mb-4 mt-6">
                             <div v-for="d in ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']" :key="d" class="text-center text-[10px] md:text-xs font-black tracking-widest text-[#1893f8] opacity-50">{{ d }}</div>
                         </div>
                         
@@ -224,19 +221,16 @@
                                 
                                 <span class="text-sm md:text-lg font-black mb-2 md:mb-3" :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'text-[#1893f8]' : 'text-[#999]'">{{ day }}</span>
                                 
-                                <!-- 數據顯示：響應式佈局 (手機垂直堆疊 / 電腦左右並排) -->
                                 <div v-if="records[formatDateKey(currentYear, currentMonth + 1, day)]" 
-                                     class="grid grid-cols-1 md:grid-cols-2 w-full px-1 sm:px-1.5 gap-1 md:gap-2 mt-1">
-                                    <!-- 左：阿如 -->
-                                    <div class="w-full font-black flex flex-col items-center justify-center px-0.5 sm:px-1 py-1 sm:py-2 md:py-4 rounded-lg sm:rounded-xl md:rounded-2xl leading-none shadow-sm transition-all"
+                                     class="flex flex-col w-full px-1 sm:px-1.5 gap-1.5 mt-1">
+                                    <div class="w-full font-black flex flex-col items-center justify-center px-0.5 sm:px-1 py-1.5 sm:py-2 md:py-3.5 rounded-lg sm:rounded-xl md:rounded-2xl leading-none shadow-sm transition-all"
                                         :class="getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
                                         <span class="text-[9px] sm:text-[11px] md:text-[13px] truncate w-full text-center mb-0.5 md:mb-1 opacity-70">阿如</span>
                                         <span class="font-mono text-[10px] sm:text-[12px] md:text-[15px] truncate w-full text-center font-black">
                                             {{ getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') > 0 ? '+' : '' }}{{ getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿如') || 0 }}
                                         </span>
                                     </div>
-                                    <!-- 右：阿瑋 -->
-                                    <div class="w-full font-black flex flex-col items-center justify-center px-0.5 sm:px-1 py-1 sm:py-2 md:py-4 rounded-lg sm:rounded-xl md:rounded-2xl leading-none shadow-sm transition-all"
+                                    <div class="w-full font-black flex flex-col items-center justify-center px-0.5 sm:px-1 py-1.5 sm:py-2 md:py-3.5 rounded-lg sm:rounded-xl md:rounded-2xl leading-none shadow-sm transition-all"
                                         :class="getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿瑋') > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), '阿瑋') < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
                                         <span class="text-[9px] sm:text-[11px] md:text-[13px] truncate w-full text-center mb-0.5 md:mb-1 opacity-70">阿瑋</span>
                                         <span class="font-mono text-[10px] sm:text-[12px] md:text-[15px] truncate w-full text-center font-black">
@@ -248,41 +242,13 @@
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4 px-1 no-export max-w-md mx-auto w-full">
+                    <div class="grid grid-cols-2 gap-4 px-1 no-export max-w-md mx-auto w-full mt-4">
                         <button @click="downloadImage" class="flex items-center justify-center gap-2 py-5 bg-white border border-[#eee] rounded-[2rem] text-sm font-black shadow-sm active-scale"><i data-lucide="download" class="text-[#1893f8] w-5 h-5"></i> 截圖保存</button>
                         <button @click="isMonthDetailOpen = true" class="flex items-center justify-center gap-2 py-5 bg-white border border-[#eee] rounded-[2rem] text-sm font-black shadow-sm active-scale"><i data-lucide="file-text" class="text-[#1893f8] w-5 h-5"></i> 當月明細</button>
                     </div>
-
-                    <div class="bg-white rounded-[3rem] p-8 shadow-sm border border-[#eee] mt-4 space-y-8">
-                        <div class="flex items-center justify-center gap-2 border-b border-[#f7f6f6] pb-5">
-                            <i data-lucide="award" class="w-6 h-6 text-[#1893f8]"></i>
-                            <h3 class="text-lg font-black text-[#302b28]">{{ currentMonth + 1 }}月 表現總覽</h3>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="space-y-3">
-                                <div class="text-[11px] font-black text-[#999] uppercase text-center mb-4 tracking-widest">個人月盈虧</div>
-                                <div v-for="p in filteredMonthlyStats" :key="p.name" 
-                                    class="flex justify-between items-center bg-[#f7f6f6] px-5 py-3 rounded-2xl text-sm font-bold">
-                                    <span class="text-[#302b28]">{{ p.name }}</span>
-                                    <span :class="p.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">
-                                        {{ p.totalProfit > 0 ? '+' : '' }}{{ p.totalProfit.toLocaleString() }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="space-y-3 md:border-l md:border-[#f7f6f6] md:pl-8">
-                                <div class="text-[11px] font-black text-[#999] uppercase text-center mb-4 tracking-widest">英雄榜 (勝率)</div>
-                                <div v-for="(p, idx) in stats.calLeaderboard" :key="p.name" 
-                                    class="flex items-center gap-4 bg-[#f7f6f6] px-5 py-3 rounded-2xl text-sm font-bold">
-                                    <span class="w-6 h-6 flex items-center justify-center rounded-full text-xs" :class="idx === 0 ? 'bg-yellow-400 text-white shadow-sm' : 'bg-white text-[#999]'">{{ idx + 1 }}</span>
-                                    <span class="flex-1 truncate">{{ p.name }}</span>
-                                    <span :class="p.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ p.totalProfit.toLocaleString() }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Tab 3: 年度排行 -->
+                <!-- Tab 3: 排行 -->
                 <div v-if="activeTab === 'leaderboard'" class="flex flex-col gap-6 animate-in fade-in duration-500 max-w-4xl mx-auto w-full transition-all">
                     <div class="bg-white rounded-[3rem] shadow-sm border border-[#eee] p-8 md:p-12">
                         <div class="flex items-center justify-center gap-3 mb-10 border-b border-[#f7f6f6] pb-8">
@@ -337,18 +303,18 @@
             </div>
         </div>
 
-        <!-- 錄入戰報 Modal -->
+        <!-- 新增彈窗 Modal -->
         <transition name="fade">
             <div v-if="isModalOpen" class="fixed inset-0 bg-[#302b28]/70 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
                 <div class="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl p-6 sm:p-10 pb-[calc(2rem+env(safe-area-inset-bottom))] relative">
                     <div class="flex justify-between items-start mb-8 pb-5 border-b border-[#f7f6f6]">
                         <div>
-                            <h3 class="text-2xl font-black text-[#1893f8]">{{ viewMode === 'edit' ? '錄入戰報' : '戰況紀錄' }}</h3>
+                            <h3 class="text-2xl font-black text-[#1893f8]">{{ viewMode === 'edit' ? '新增' : '戰況紀錄' }}</h3>
                             <input v-if="viewMode === 'edit'" type="date" v-model="selectedDate" class="mt-3 text-base font-black bg-[#f7f6f6] px-4 py-2 rounded-xl border-none focus:ring-2 ring-[#1893f8]">
                             <p v-else class="text-xs font-bold text-[#999] uppercase font-mono mt-2 tracking-widest">{{ selectedDate }}</p>
                         </div>
                         <div class="flex items-center gap-4">
-                            <div class="flex bg-[#f7f6f6] p-1 rounded-2xl">
+                            <div class="flex bg-[#f7f6f6] p-1 rounded-2xl no-export">
                                 <button @click="viewMode = 'preview'" class="px-5 py-2 rounded-xl text-xs font-bold transition-all" :class="viewMode === 'preview' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">預覽</button>
                                 <button @click="handleEditTabClick" class="px-5 py-2 rounded-xl text-xs font-bold transition-all" :class="viewMode === 'edit' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">編輯</button>
                             </div>
@@ -359,6 +325,7 @@
                     </div>
 
                     <div v-if="viewMode === 'edit'" class="space-y-8">
+                        <!-- 密碼驗證區 -->
                         <div v-if="!isVerified" class="py-16 flex flex-col items-center justify-center text-center">
                             <div class="w-20 h-20 bg-[#f7f6f6] rounded-full flex items-center justify-center text-[#1893f8] mb-6 shadow-inner">
                                 <i data-lucide="lock" class="w-10 h-10"></i>
@@ -372,7 +339,8 @@
                             </div>
                         </div>
 
-                        <div v-else class="space-y-8">
+                        <!-- 編輯內容區 -->
+                        <div v-else class="space-y-8 animate-in fade-in duration-300">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="md:col-span-1">
                                     <label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">籌碼規格</label>
@@ -455,6 +423,7 @@
             </div>
         </transition>
 
+        <!-- 個人明細 Modal -->
         <transition name="fade">
             <div v-if="detailPlayer" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
                 <div class="bg-white rounded-[3.5rem] w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
@@ -507,24 +476,27 @@
 
         const app = createApp({
             setup() {
-                // 基礎常數與狀態
-                const DEFAULT_PLAYERS = [
-                    { name: '阿如', category: ['couple'] },
-                    { name: '萱萱', category: ['family'] },
-                    { name: '速配', category: ['other'] },
-                    { name: '漢斯', category: ['other'] },
-                    { name: '阿祐', category: ['family'] },
-                    { name: '阿瑋', category: ['couple'] }
-                ];
+                // --- 1. 基本資料與工具 ---
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
+                const normalizeDateString = (str) => {
+                    if (!str || typeof str !== 'string') return str;
+                    const parts = str.split('-');
+                    if (parts.length !== 3) return str;
+                    return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                };
+                const formatDateKey = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
+                // --- 2. 狀態宣告 ---
                 const appId = ref(new URLSearchParams(window.location.search).get('id') || 'mahjong-tracker-2026');
                 const user = ref(null);
                 const activeTab = ref('calendar');
+                // 預設月份為 "全年"
                 const monthFilter = ref('all');
                 const currentYear = ref(new Date().getFullYear());
                 const currentMonth = ref(new Date().getMonth());
                 const records = ref({});
-                const players = ref(DEFAULT_PLAYERS);
+                const players = ref([]);
                 const isVerified = ref(false);
                 const passwordInput = ref('');
                 const passwordError = ref(false);
@@ -535,46 +507,36 @@
                 const viewMode = ref('preview');
                 const selectedDate = ref('');
                 const detailPlayer = ref(null);
-                const isMonthDetailOpen = ref(false);
                 const cloudStatus = ref('disconnected');
                 const formData = ref({ stakes: '30/10', location: '', rounds: '1', playerStats: {} });
 
-                // 核心輔助工具
-                const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
-                
-                const getPlayerCategories = (name) => {
-                    const player = players.value.find(p => p.name === name);
-                    return ensureCategoryArray(player?.category);
-                };
-
-                const normalizeDateString = (str) => {
-                    if (!str || typeof str !== 'string') return str;
-                    const parts = str.split('-');
-                    if (parts.length !== 3) return str;
-                    return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
-                };
-
-                const formatDateKey = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-
+                // --- 3. 邏輯方法 ---
                 const getScoreByName = (date, name) => {
                     const rec = records.value[date];
-                    return rec && rec.playerStats[name] !== undefined ? rec.playerStats[name] : null;
+                    return (rec && rec.playerStats && rec.playerStats[name] !== undefined) ? rec.playerStats[name] : null;
                 };
 
-                const getCoupleStatsForDay = (date) => {
-                    const rec = records.value[date], res = {};
-                    if (!rec) return res;
-                    if (rec.playerStats['阿如'] !== undefined) res['阿如'] = rec.playerStats['阿如'];
-                    if (rec.playerStats['阿瑋'] !== undefined) res['阿瑋'] = rec.playerStats['阿瑋'];
-                    return res;
+                const getPlayerCategories = (name) => {
+                    const p = players.value.find(pl => pl.name === name);
+                    return ensureCategoryArray(p?.category);
                 };
 
-                // Firebase 初始化
-                const firebaseApp = initializeApp(firebaseConfig);
-                const auth = getAuth(firebaseApp);
-                const db = getFirestore(firebaseApp);
+                const checkPassword = () => {
+                    // PIN: 0302
+                    if (passwordInput.value === '0302') { 
+                        isVerified.value = true; 
+                        passwordError.value = false; 
+                        passwordInput.value = ''; 
+                    } else { 
+                        passwordError.value = true; 
+                        passwordInput.value = ''; 
+                    }
+                };
 
-                // 資料讀取
+                const handleEditTabClick = () => { viewMode.value = 'edit'; };
+
+                const handleManualRefresh = () => { cloudStatus.value = 'syncing'; setTimeout(() => { cloudStatus.value = 'connected'; fetchData(); }, 1000); };
+
                 const fetchData = () => {
                     if (!user.value) return;
                     onSnapshot(collection(db, 'artifacts', appId.value, 'public', 'data', 'records'), (snap) => {
@@ -584,25 +546,80 @@
                     });
                     onSnapshot(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), (snap) => {
                         if (snap.exists()) {
-                            const list = snap.data().list || [];
-                            players.value = list.map(p => ({ ...p, category: ensureCategoryArray(p.category) }));
-                        } else {
-                            setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: DEFAULT_PLAYERS });
+                            players.value = snap.data().list.map(p => ({ ...p, category: ensureCategoryArray(p.category) }));
                         }
                     });
                 };
 
-                // 生命週期
-                onMounted(async () => {
-                    lucide.createIcons();
-                    await signInAnonymously(auth);
-                    onAuthStateChanged(auth, (u) => {
-                        user.value = u;
-                        if (u) { cloudStatus.value = 'connected'; fetchData(); }
-                    });
+                const handleDateClick = (day) => {
+                    const standardKey = formatDateKey(currentYear.value, currentMonth.value + 1, day);
+                    selectedDate.value = standardKey;
+                    const existing = records.value[standardKey];
+                    isVerified.value = false; 
+                    passwordInput.value = ''; 
+                    passwordError.value = false;
+                    if (existing) {
+                        formData.value = JSON.parse(JSON.stringify(existing));
+                        viewMode.value = 'preview';
+                    } else {
+                        const initialStats = {};
+                        players.value.forEach(p => initialStats[p.name] = 0);
+                        formData.value = { stakes: '30/10', location: '', rounds: '1', playerStats: initialStats };
+                        viewMode.value = 'edit';
+                    }
+                    isModalOpen.value = true;
+                };
+
+                const handleQuickAdd = () => {
+                    const now = new Date();
+                    selectedDate.value = formatDateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
+                    isVerified.value = false; 
+                    passwordInput.value = ''; 
+                    passwordError.value = false;
+                    const initialStats = {};
+                    players.value.forEach(p => initialStats[p.name] = 0);
+                    formData.value = { stakes: '30/10', location: '', rounds: '1', playerStats: initialStats };
+                    viewMode.value = 'edit';
+                    isModalOpen.value = true;
+                };
+
+                const saveRecord = async () => {
+                    cloudStatus.value = 'syncing';
+                    try {
+                        await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', selectedDate.value), formData.value);
+                        isModalOpen.value = false;
+                        cloudStatus.value = 'connected';
+                    } catch (e) { cloudStatus.value = 'disconnected'; }
+                };
+
+                const addPlayer = async () => {
+                    const name = newPlayerName.value.trim();
+                    if (!user.value || !name) return;
+                    if (!players.value.find(p => p.name === name)) {
+                        const updatedList = [...players.value, { name, category: newPlayerCategories.value }];
+                        await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
+                    }
+                    formData.value.playerStats[name] = 0;
+                    newPlayerName.value = '';
+                };
+
+                const downloadImage = () => {
+                    html2canvas(document.querySelector('#app'), { backgroundColor: '#f7f6f6', ignoreElements: (el) => el.classList.contains('no-export') })
+                    .then(canvas => { const link = document.createElement('a'); link.download = `mahjong-${currentYear.value}-${currentMonth.value+1}.png`; link.href = canvas.toDataURL(); link.click(); });
+                };
+
+                // --- 4. 計算屬性 ---
+                const homeCardTitle = computed(() => {
+                    if (monthFilter.value === 'all') return 'Yearly Balance';
+                    const mName = monthNames[parseInt(monthFilter.value) - 1];
+                    return `${mName} balance`;
                 });
 
-                // 計算屬性
+                const homeFilteredPlayers = computed(() => players.value.filter(p => {
+                    const cats = ensureCategoryArray(p.category);
+                    return cats.includes('family') || cats.includes('couple');
+                }));
+
                 const yearOptions = computed(() => {
                     const base = new Date().getFullYear();
                     const list = [];
@@ -614,16 +631,10 @@
                     return [...new Set(list)].sort((a,b) => a-b);
                 });
 
-                const homeFilteredPlayers = computed(() => players.value.filter(p => {
-                    const cats = ensureCategoryArray(p.category);
-                    return cats.includes('family') || cats.includes('couple');
-                }));
-
                 const stats = computed(() => {
                     let familyProfit = 0, coupleProfit = 0;
                     const calMonthMap = {};
                     players.value.forEach(p => calMonthMap[p.name] = { name: p.name, totalProfit: 0, participateCount: 0 });
-
                     Object.entries(records.value).forEach(([date, rec]) => {
                         const parts = date.split('-');
                         const rYear = parseInt(parts[0]), rMonth = parseInt(parts[1]);
@@ -631,23 +642,17 @@
                             if (monthFilter.value === 'all' || rMonth === parseInt(monthFilter.value)) {
                                 Object.entries(rec.playerStats).forEach(([name, amount]) => {
                                     const p = players.value.find(pl => pl.name === name);
-                                    const cats = ensureCategoryArray(p?.category);
-                                    if (cats.includes('family')) familyProfit += amount;
-                                    if (cats.includes('couple')) coupleProfit += amount;
+                                    if (p) {
+                                        const cats = ensureCategoryArray(p.category);
+                                        if (cats.includes('family')) familyProfit += amount;
+                                        if (cats.includes('couple')) coupleProfit += amount;
+                                    }
                                 });
                             }
                         }
-                        if (rYear === currentYear.value && rMonth === (currentMonth.value + 1)) {
-                            Object.entries(rec.playerStats).forEach(([name, amount]) => {
-                                if (calMonthMap[name]) { calMonthMap[name].totalProfit += amount; calMonthMap[name].participateCount += 1; }
-                            });
-                        }
                     });
-                    const calLeaderboard = Object.values(calMonthMap).filter(s => s.participateCount > 0).sort((a, b) => b.totalProfit - a.totalProfit);
-                    return { familyProfit, coupleProfit, calMonthMap, calLeaderboard };
+                    return { familyProfit, coupleProfit, calMonthMap };
                 });
-
-                const filteredMonthlyStats = computed(() => Object.values(stats.value.calMonthMap).filter(s => s.participateCount > 0));
 
                 const leaderboard = computed(() => {
                     const map = {};
@@ -667,131 +672,79 @@
                     return Object.values(map).filter(s => s.participateCount > 0).map(s => ({ ...s, winRate: ((s.winCount / s.participateCount) * 100).toFixed(1) })).sort((a, b) => b.totalProfit - a.totalProfit);
                 });
 
-                const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate());
-                const firstDayOfMonth = computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay());
+                // --- 5. Firebase 初始化與生命週期 ---
+                const firebaseApp = initializeApp(firebaseConfig);
+                const auth = getAuth(firebaseApp);
+                const db = getFirestore(firebaseApp);
 
-                // 交互函式
-                const getAnnualProfit = (name) => leaderboard.value.find(l => l.name === name)?.totalProfit || 0;
-                const getAnnualWinnings = (name) => leaderboard.value.find(l => l.name === name)?.totalWinnings || 0;
-                const getAnnualLosses = (name) => leaderboard.value.find(l => l.name === name)?.totalLosses || 0;
-                const getPartCount = (name) => leaderboard.value.find(l => l.name === name)?.participateCount || 0;
-                const getTotalRounds = (name) => leaderboard.value.find(l => l.name === name)?.totalRounds || 0;
-
-                const prevMonth = () => { if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; } else { currentMonth.value--; } };
-                const nextMonth = () => { if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; } else { currentMonth.value++; } };
-
-                const openRecordModal = (dateStr, forceEdit = false, forceBlank = false) => {
-                    const standardKey = normalizeDateString(dateStr);
-                    selectedDate.value = standardKey;
-                    const existing = records.value[standardKey];
-                    isVerified.value = false; passwordInput.value = ''; passwordError.value = false;
-                    if (existing && !forceBlank) {
-                        formData.value = JSON.parse(JSON.stringify(existing));
-                        viewMode.value = forceEdit ? 'edit' : 'preview';
-                    } else {
-                        const initialStats = {};
-                        players.value.forEach(p => initialStats[p.name] = 0);
-                        formData.value = { stakes: '30/10', location: '', rounds: '1', playerStats: initialStats };
-                        viewMode.value = 'edit';
-                    }
-                    isModalOpen.value = true;
-                };
-
-                const handleDateClick = (day) => openRecordModal(formatDateKey(currentYear.value, currentMonth.value + 1, day), false, false);
-                const handleQuickAdd = () => openRecordModal(formatDateKey(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()), true, true);
-                const handleEditTabClick = () => { if (viewMode.value !== 'edit') viewMode.value = 'edit'; };
-
-                const checkPassword = () => {
-                    if (passwordInput.value === '0302') { isVerified.value = true; passwordError.value = false; passwordInput.value = ''; }
-                    else { passwordError.value = true; passwordInput.value = ''; }
-                };
-
-                const updateStat = (name, val) => {
-                    const isLoss = formData.value.playerStats[name] < 0;
-                    formData.value.playerStats[name] = isLoss ? -Math.abs(val) : Math.abs(val);
-                };
-                const toggleWinLoss = (name, type) => {
-                    const val = Math.abs(formData.value.playerStats[name] || 0);
-                    formData.value.playerStats[name] = type === 'win' ? val : -val;
-                };
-
-                const saveRecord = async () => {
-                    cloudStatus.value = 'syncing';
-                    try {
-                        await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', selectedDate.value), formData.value);
-                        isModalOpen.value = false;
-                        cloudStatus.value = 'connected';
-                    } catch (e) { cloudStatus.value = 'disconnected'; }
-                };
-
-                const toggleNewPlayerCategory = (val) => {
-                    if (newPlayerCategories.value.includes(val)) newPlayerCategories.value = newPlayerCategories.value.filter(c => { return c !== val });
-                    else newPlayerCategories.value.push(val);
-                    if (newPlayerCategories.value.length === 0) newPlayerCategories.value = ['other'];
-                };
-
-                const addPlayer = async () => {
-                    const name = newPlayerName.value.trim();
-                    if (!user.value || !name) return;
-                    if (!players.value.find(p => p.name === name)) {
-                        const updatedList = [...players.value, { name, category: newPlayerCategories.value }];
-                        await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
-                    }
-                    formData.value.playerStats[name] = 0;
-                    newPlayerName.value = '';
-                };
-
-                const removePlayerFromRecord = (name) => { delete formData.value.playerStats[name]; };
-
-                const updatePlayerCategory = async (name, catVal) => {
-                    const player = players.value.find(p => p.name === name);
-                    if (!player) return;
-                    let newCats = [...ensureCategoryArray(player.category)];
-                    if (newCats.includes(catVal)) newCats = newCats.filter(c => c !== catVal);
-                    else newCats.push(catVal);
-                    if (newCats.length === 0) newCats = ['other'];
-                    const updatedList = players.value.map(p => p.name === name ? { ...p, category: newCats } : p);
-                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
-                };
-
-                const getPlayerHistory = (name) => {
-                    const history = [];
-                    Object.entries(records.value).forEach(([date, rec]) => {
-                        const yr = parseInt(date.split('-')[0]);
-                        const rMonth = parseInt(date.split('-')[1]);
-                        if (yr === currentYear.value && rec.playerStats[name] !== undefined) {
-                            if (monthFilter.value === 'all' || rMonth === parseInt(monthFilter.value)) {
-                                history.push({ date, amount: rec.playerStats[name], location: rec.location, stakes: rec.stakes });
-                            }
-                        }
+                onMounted(async () => {
+                    lucide.createIcons();
+                    await signInAnonymously(auth);
+                    onAuthStateChanged(auth, (u) => {
+                        user.value = u;
+                        if (u) { cloudStatus.value = 'connected'; fetchData(); }
                     });
-                    return history.reverse();
-                };
-
-                const getFilteredProfit = (name) => getPlayerHistory(name).reduce((sum, h) => sum + h.amount, 0);
-
-                const handleManualRefresh = () => { cloudStatus.value = 'syncing'; setTimeout(() => { cloudStatus.value = 'connected'; fetchData(); }, 1000); };
-
-                const downloadImage = () => {
-                    html2canvas(document.querySelector('#app'), { backgroundColor: '#f7f6f6', ignoreElements: (el) => el.classList.contains('no-export') })
-                    .then(canvas => { const link = document.createElement('a'); link.download = `mahjong-${currentYear.value}-${currentMonth.value+1}.png`; link.href = canvas.toDataURL(); link.click(); });
-                };
+                });
 
                 watch([activeTab, isModalOpen, detailPlayer, isVerified], () => { 
                     setTimeout(() => lucide.createIcons(), 50); 
                 });
 
+                // --- 6. 回傳物件 ---
                 return {
                     appId, activeTab, monthFilter, currentYear, currentMonth, records, players, yearOptions,
-                    isModalOpen, viewMode, selectedDate, detailPlayer, isMonthDetailOpen, cloudStatus,
-                    formData, homeFilteredPlayers, stats, leaderboard, daysInMonth, firstDayOfMonth,
-                    filteredMonthlyStats, cloudStatusText: computed(() => ({'connected':'雲端已同步', 'disconnected':'離線狀態', 'syncing':'正在同步...'}[cloudStatus.value])),
-                    newPlayerName, newPlayerCategories, categoryOptions, addPlayer, toggleNewPlayerCategory, updatePlayerCategory, getPlayerCategories, removePlayerFromRecord,
-                    prevMonth, nextMonth, handleDateClick, saveRecord, updateStat, toggleWinLoss,
-                    getAnnualProfit, getAnnualWinnings, getAnnualLosses, getPartCount, getTotalRounds,
-                    getPlayerHistory, getFilteredProfit, getScoreByName, getCoupleStatsForDay,
-                    handleManualRefresh, handleQuickAdd, downloadImage, formatDateKey,
-                    isVerified, passwordInput, passwordError, checkPassword, handleEditTabClick
+                    isModalOpen, viewMode, selectedDate, detailPlayer, cloudStatus,
+                    formData, homeFilteredPlayers, stats, leaderboard, 
+                    daysInMonth: computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate()), 
+                    firstDayOfMonth: computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay()),
+                    homeCardTitle,
+                    cloudStatusText: computed(() => ({'connected':'雲端已同步', 'disconnected':'離線狀態', 'syncing':'正在同步...'}[cloudStatus.value])),
+                    newPlayerName, newPlayerCategories, categoryOptions, addPlayer,
+                    toggleNewPlayerCategory: (val) => {
+                        if (newPlayerCategories.value.includes(val)) newPlayerCategories.value = newPlayerCategories.value.filter(c => c !== val);
+                        else newPlayerCategories.value.push(val);
+                    },
+                    updatePlayerCategory: async (name, catVal) => {
+                        const player = players.value.find(p => p.name === name);
+                        if (!player) return;
+                        let newCats = [...ensureCategoryArray(player.category)];
+                        if (newCats.includes(catVal)) newCats = newCats.filter(c => c !== catVal);
+                        else newCats.push(catVal);
+                        const updatedList = players.value.map(p => p.name === name ? { ...p, category: newCats } : p);
+                        await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
+                    },
+                    getPlayerCategories, removePlayerFromRecord: (name) => { delete formData.value.playerStats[name]; },
+                    prevMonth: () => { if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; } else { currentMonth.value--; } },
+                    nextMonth: () => { if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; } else { currentMonth.value++; } },
+                    handleDateClick, saveRecord,
+                    updateStat: (name, val) => { const isLoss = formData.value.playerStats[name] < 0; formData.value.playerStats[name] = isLoss ? -Math.abs(val) : Math.abs(val); },
+                    toggleWinLoss: (name, type) => { const val = Math.abs(formData.value.playerStats[name] || 0); formData.value.playerStats[name] = type === 'win' ? val : -val; },
+                    getAnnualProfit: (name) => leaderboard.value.find(l => l.name === name)?.totalProfit || 0,
+                    getAnnualWinnings: (name) => leaderboard.value.find(l => l.name === name)?.totalWinnings || 0,
+                    getAnnualLosses: (name) => leaderboard.value.find(l => l.name === name)?.totalLosses || 0,
+                    getPartCount: (name) => leaderboard.value.find(l => l.name === name)?.participateCount || 0,
+                    getTotalRounds: (name) => leaderboard.value.find(l => l.name === name)?.totalRounds || 0,
+                    getPlayerHistory: (name) => {
+                        const history = [];
+                        Object.entries(records.value).forEach(([date, rec]) => {
+                            if (parseInt(date.split('-')[0]) === currentYear.value && rec.playerStats[name] !== undefined) {
+                                if (monthFilter.value === 'all' || parseInt(date.split('-')[1]) === parseInt(monthFilter.value)) {
+                                    history.push({ date, amount: rec.playerStats[name], location: rec.location, stakes: rec.stakes });
+                                }
+                            }
+                        });
+                        return history.reverse();
+                    },
+                    getFilteredProfit: (name) => {
+                        let total = 0;
+                        Object.entries(records.value).forEach(([date, rec]) => {
+                            if (parseInt(date.split('-')[0]) === currentYear.value && rec.playerStats[name] !== undefined) {
+                                if (monthFilter.value === 'all' || parseInt(date.split('-')[1]) === parseInt(monthFilter.value)) { total += rec.playerStats[name]; }
+                            }
+                        });
+                        return total;
+                    },
+                    getScoreByName, handleManualRefresh, handleQuickAdd, downloadImage, formatDateKey, isVerified, passwordInput, passwordError, checkPassword, handleEditTabClick
                 };
             }
         }).mount('#app');
