@@ -52,6 +52,7 @@
             font-weight: 900;
             transition: all 0.2s;
             border-width: 1px;
+            cursor: pointer;
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -70,11 +71,13 @@
             
             <!-- Header 標題列 -->
             <div class="pt-6 sm:pt-8 pb-1 text-center relative">
-                <!-- 左上角功能圖示區 -->
+                <!-- 左上角功能圖示區：自動調整大小與間距 -->
                 <div class="absolute left-0 top-6 sm:top-8 flex items-center gap-0.5 sm:gap-1.5 no-export">
+                    <!-- 刷新 -->
                     <button @click="handleManualRefresh" class="p-1.5 sm:p-2 text-[#999] active-scale">
                         <i data-lucide="rotate-cw" :class="{'animate-spin text-[#1893f8]': cloudStatus === 'syncing'}" class="w-[18px] h-[18px] sm:w-5 sm:h-5"></i>
                     </button>
+                    <!-- 日曆分頁專屬功能圖示 -->
                     <template v-if="activeTab === 'calendar'">
                         <button @click="downloadImage" class="p-1.5 sm:p-2 text-[#999] active-scale" title="截圖保存">
                             <i data-lucide="download" class="w-[18px] h-[18px] sm:w-5 sm:h-5"></i>
@@ -198,7 +201,7 @@
                     </div>
                 </div>
 
-                <!-- Tab 2: 日曆紀錄 -->
+                <!-- Tab 2: 日曆紀錄 (合併當日盈虧) -->
                 <div v-if="activeTab === 'calendar'" class="flex flex-col gap-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
                     <div class="bg-white rounded-[2rem] md:rounded-[3rem] p-2 sm:p-4 md:p-10 border border-[#eee] shadow-sm overflow-hidden">
                         <div class="text-center mb-4">
@@ -226,46 +229,34 @@
                                 <span class="text-[12px] sm:text-sm md:text-lg font-black mb-1 md:mb-3" :class="records[formatDateKey(currentYear, currentMonth + 1, day)] ? 'text-[#1893f8]' : 'text-[#999]'">{{ day }}</span>
                                 <div v-if="records[formatDateKey(currentYear, currentMonth + 1, day)]" class="flex flex-col w-full px-1 sm:px-1.5 md:px-2 gap-1 md:gap-1.5 mt-0.5 md:mt-1">
                                     <div v-for="target in ['阿如', '阿瑋']" :key="target" class="w-full font-black flex flex-col items-center justify-center px-0.5 sm:px-1 py-1 sm:py-2 md:py-3.5 rounded-lg md:rounded-2xl leading-none shadow-sm transition-all"
-                                        :class="getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), target) > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), target) < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
+                                        :class="getDailyMergedScore(formatDateKey(currentYear, currentMonth + 1, day), target) > 0 ? 'bg-[#1893f8]/10 text-[#1893f8]' : getDailyMergedScore(formatDateKey(currentYear, currentMonth + 1, day), target) < 0 ? 'bg-[#ff4d4d]/10 text-[#ff4d4d]' : 'bg-gray-100 text-gray-500'">
                                         <span class="text-[8px] sm:text-[10px] md:text-[13px] truncate w-full text-center mb-0.5 md:mb-1 opacity-70">{{ target }}</span>
-                                        <span class="font-mono text-[9px] sm:text-[11px] md:text-[15px] truncate w-full text-center font-black">{{ getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), target) > 0 ? '+' : '' }}{{ getScoreByName(formatDateKey(currentYear, currentMonth + 1, day), target) || 0 }}</span>
+                                        <span class="font-mono text-[9px] sm:text-[11px] md:text-[15px] truncate w-full text-center font-black">{{ getDailyMergedScore(formatDateKey(currentYear, currentMonth + 1, day), target) > 0 ? '+' : '' }}{{ getDailyMergedScore(formatDateKey(currentYear, currentMonth + 1, day), target) || 0 }}</span>
                                     </div>
                                 </div>
                             </button>
                         </div>
                     </div>
-                    <!-- 本月統計 -->
-                    <div class="bg-white rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-8 shadow-sm border border-[#eee] mt-4 space-y-8 animate-in fade-in duration-500">
-                        <div class="flex items-center justify-center gap-2 border-b border-[#f7f6f6] pb-5"><i data-lucide="award" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-lg font-black text-[#302b28]">{{ currentMonth + 1 }}月 表現總覽</h3></div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="space-y-3">
-                                <div class="text-[11px] font-black text-[#999] uppercase text-center mb-4 tracking-widest">個人月盈虧</div>
-                                <div v-for="p in filteredMonthlyStats" :key="p.name" class="flex justify-between items-center bg-[#f7f6f6] px-5 py-3 rounded-2xl text-sm font-bold">
-                                    <span class="text-[#302b28]">{{ p.name }}</span>
-                                    <span :class="p.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ p.totalProfit > 0 ? '+' : '' }}{{ p.totalProfit.toLocaleString() }}</span>
-                                </div>
-                            </div>
-                            <div class="space-y-3 md:border-l md:border-[#f7f6f6] md:pl-8">
-                                <div class="text-[11px] font-black text-[#999] uppercase text-center mb-4 tracking-widest">英雄榜 (本月)</div>
-                                <div v-for="(p, idx) in filteredMonthlyStats" :key="p.name" class="flex items-center gap-4 bg-[#f7f6f6] px-5 py-3 rounded-2xl text-sm font-bold">
-                                    <span class="w-6 h-6 flex items-center justify-center rounded-full text-xs font-black shadow-sm"
-                                        :style="{ backgroundColor: idx === 0 ? '#FFD700' : idx === 1 ? '#A0A0A0' : idx === 2 ? '#CD7F32' : '#ffffff', color: idx < 3 ? 'white' : '#999' }">
-                                        {{ idx + 1 }}
-                                    </span>
-                                    <span class="flex-1 truncate">{{ p.name }}</span>
-                                    <span :class="p.totalProfit >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'">{{ p.totalProfit.toLocaleString() }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Tab 3: 排行 -->
+                <!-- Tab 3: 排行 (家人與情人榜合併) -->
                 <div v-if="activeTab === 'leaderboard'" class="flex flex-col gap-6 animate-in fade-in duration-500 max-w-4xl mx-auto w-full transition-all">
                     <div class="bg-white rounded-[3rem] shadow-sm border border-[#eee] p-8 md:p-12">
-                        <div class="flex items-center justify-center gap-3 mb-10 border-b border-[#f7f6f6] pb-8"><i data-lucide="award" class="w-8 h-8 text-[#1893f8]"></i><h3 class="text-2xl font-black text-[#302b28]">英雄榜</h3></div>
+                        <div class="flex flex-col items-center justify-center gap-6 mb-10 border-b border-[#f7f6f6] pb-8">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="award" class="w-8 h-8 text-[#1893f8]"></i>
+                                <h3 class="text-2xl font-black text-[#302b28]">英雄榜</h3>
+                            </div>
+                            
+                            <!-- 排行榜分類：合併為「親友榜」 -->
+                            <div class="flex bg-[#f7f6f6] p-1.5 rounded-2xl no-export w-fit shadow-inner">
+                                <button @click="leaderboardTab = 'all'" class="px-8 py-2 rounded-xl text-xs font-black transition-all" :class="leaderboardTab === 'all' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">總排行</button>
+                                <button @click="leaderboardTab = 'kinship'" class="px-8 py-2 rounded-xl text-xs font-black transition-all" :class="leaderboardTab === 'kinship' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">親友榜</button>
+                            </div>
+                        </div>
+
                         <div class="flex flex-col gap-10 sm:gap-12">
-                            <div v-for="(item, idx) in leaderboard" :key="item.name" class="relative flex flex-col p-8 sm:p-10 rounded-[3rem] bg-[#f7f6f6]/50 border border-transparent hover:bg-white hover:border-[#eee] hover:shadow-xl transition-all duration-300">
+                            <div v-for="(item, idx) in displayLeaderboard" :key="item.name" class="relative flex flex-col p-8 sm:p-10 rounded-[3rem] bg-[#f7f6f6]/50 border border-transparent hover:bg-white hover:border-[#eee] hover:shadow-xl transition-all duration-300">
                                 <!-- 排名數字 -->
                                 <div class="absolute -top-3 -left-1 sm:-top-5 sm:-left-3 text-5xl sm:text-7xl font-black italic select-none pointer-events-none drop-shadow-sm opacity-90" 
                                     :style="{ color: idx === 0 ? '#FFD700' : idx === 1 ? '#A0A0A0' : idx === 2 ? '#CD7F32' : '#d1d1d1' }">
@@ -291,6 +282,7 @@
                                     <button @click="detailPlayer = item.name" class="text-xs font-black text-[#1893f8] active-scale hover:underline">詳情紀錄</button>
                                 </div>
                             </div>
+                            <div v-if="displayLeaderboard.length === 0" class="py-20 text-center text-[#ccc] italic">目前此榜單下無玩家紀錄</div>
                         </div>
                     </div>
                 </div>
@@ -301,52 +293,64 @@
         <div class="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#f7f6f6] via-[#f7f6f6] to-transparent pt-4 pb-[env(safe-area-inset-bottom)] no-export">
             <div class="max-w-[320px] md:max-w-[400px] mx-auto mb-8 px-4">
                 <div class="bg-white/90 backdrop-blur-2xl p-1.5 rounded-[2.5rem] border border-[#eee] shadow-2xl flex items-center gap-1.5">
-                    <button @click="activeTab = 'home'" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-[2rem] text-sm font-bold transition-all" :class="activeTab === 'home' ? 'bg-[#e55039] text-white shadow-lg' : 'text-[#999] hover:bg-[#f7f6f6]'">
-                        <i data-lucide="home" class="w-5 h-5"></i><span class="hidden sm:inline">首頁</span>
-                    </button>
-                    <button @click="activeTab = 'calendar'" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-[2rem] text-sm font-bold transition-all" :class="activeTab === 'calendar' ? 'bg-[#1893f8] text-white shadow-lg' : 'text-[#999] hover:bg-[#f7f6f6]'">
-                        <i data-lucide="calendar" class="w-5 h-5"></i><span class="hidden sm:inline">日曆</span>
-                    </button>
-                    <button @click="activeTab = 'leaderboard'" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-[2rem] text-sm font-bold transition-all" :class="activeTab === 'leaderboard' ? 'bg-[#1893f8] text-white shadow-lg' : 'text-[#999] hover:bg-[#f7f6f6]'">
-                        <i data-lucide="list-ordered" class="w-5 h-5"></i><span class="hidden sm:inline">排行</span>
-                    </button>
+                    <button @click="activeTab = 'home'" class="flex-1 py-3 rounded-[2rem] text-sm font-bold transition-all" :class="activeTab === 'home' ? 'bg-[#e55039] text-white shadow-lg' : 'text-[#999] hover:bg-[#f7f6f6]'">首頁</button>
+                    <button @click="activeTab = 'calendar'" class="flex-1 py-3 rounded-[2rem] text-sm font-bold transition-all" :class="activeTab === 'calendar' ? 'bg-[#1893f8] text-white shadow-lg' : 'text-[#999] hover:bg-[#f7f6f6]'">日曆</button>
+                    <button @click="activeTab = 'leaderboard'" class="flex-1 py-3 rounded-[2rem] text-sm font-bold transition-all" :class="activeTab === 'leaderboard' ? 'bg-[#1893f8] text-white shadow-lg' : 'text-[#999] hover:bg-[#f7f6f6]'">排行</button>
                 </div>
             </div>
         </div>
 
-        <!-- 各種彈窗 (Modals) -->
+        <!-- 錄入戰報 Modal -->
         <transition name="fade">
             <div v-if="isModalOpen" class="fixed inset-0 bg-[#302b28]/70 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-                <div class="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl p-6 sm:p-10 pb-[calc(2rem+env(safe-area-inset-bottom))] relative">
+                <div class="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl p-6 sm:p-10 pb-[calc(2rem+env(safe-area-inset-bottom))] relative no-scrollbar">
                     <div class="flex justify-between items-start mb-8 pb-5 border-b border-[#f7f6f6]">
-                        <div><h3 class="text-2xl font-black text-[#1893f8]">{{ viewMode === 'edit' ? '新增' : '戰況紀錄' }}</h3><input v-if="viewMode === 'edit'" type="date" v-model="selectedDate" class="mt-3 text-base font-black bg-[#f7f6f6] px-4 py-2 rounded-xl border-none"></div>
+                        <div>
+                            <h3 class="text-2xl font-black text-[#1893f8]">{{ viewMode === 'edit' ? (editingSessionId ? '編輯場次' : '錄入新場次') : '當日戰報清單' }}</h3>
+                            <input v-if="viewMode === 'edit' && !editingSessionId" type="date" v-model="selectedDate" class="mt-3 text-base font-black bg-[#f7f6f6] px-4 py-2 rounded-xl border-none">
+                            <p v-else class="text-xs font-bold text-[#999] mt-2 tracking-widest uppercase">{{ selectedDate }}</p>
+                        </div>
                         <div class="flex items-center gap-4">
-                            <div class="flex bg-[#f7f6f6] p-1 rounded-2xl no-export">
-                                <button @click="handleEditTabClick" class="px-5 py-2 rounded-xl text-xs font-bold transition-all" :class="viewMode === 'edit' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">編輯</button>
+                            <div v-if="records[selectedDate]" class="flex bg-[#f7f6f6] p-1 rounded-2xl no-export">
+                                <button @click="viewMode = 'preview'" class="px-5 py-2 rounded-xl text-xs font-bold transition-all" :class="viewMode === 'preview' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">清單</button>
                             </div>
                             <button @click="isModalOpen = false" class="w-12 h-12 flex items-center justify-center rounded-full bg-[#f7f6f6] text-[#999] active-scale shadow-inner"><i data-lucide="x" class="w-6 h-6"></i></button>
                         </div>
                     </div>
+
                     <div v-if="viewMode === 'edit'" class="space-y-8">
                         <div v-if="!isVerified" class="py-16 flex flex-col items-center justify-center text-center">
                             <i data-lucide="lock" class="w-16 h-16 text-[#1893f8] mb-6"></i>
                             <h4 class="font-black text-xl mb-8 uppercase tracking-widest">PIN CODE 驗證</h4>
-                            <div class="w-full max-w-[240px]"><input type="password" v-model="passwordInput" placeholder="••••" class="w-full bg-[#f7f6f6] rounded-[2rem] px-6 py-5 text-center text-2xl font-black border-none focus:ring-4 ring-[#1893f8]/20 mb-5" @keyup.enter="checkPassword"><button @click="checkPassword" class="w-full py-5 bg-[#1893f8] text-white rounded-[2rem] font-black active-scale shadow-xl">確認</button></div>
+                            <div class="w-full max-w-[240px]"><input type="password" v-model="passwordInput" placeholder="••••" class="w-full bg-[#f7f6f6] rounded-[2rem] px-6 py-5 text-center text-2xl font-black border-none" @keyup.enter="checkPassword"><button @click="checkPassword" class="w-full py-5 bg-[#1893f8] text-white rounded-[2rem] font-black active-scale shadow-xl mt-4">確認進入</button></div>
                         </div>
+                        
                         <div v-else class="space-y-8 animate-in fade-in duration-300">
                              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div><label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">籌碼</label><select v-model="formData.stakes" class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none"><option value="30/10">30/10</option><option value="50/20">50/20</option><option value="100/20">100/20</option></select></div>
-                                <div><label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">將數</label><input type="number" step="0.5" v-model="formData.rounds" class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none"></div>
+                                <div><label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">籌碼規格</label><select v-model="formData.stakes" class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none"><option value="30/10">30/10</option><option value="50/20">50/20</option><option value="100/20">100/20</option></select></div>
+                                <div><label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">打幾將</label><input type="number" step="0.5" v-model="formData.rounds" class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none"></div>
                                 <div><label class="text-[11px] font-black text-[#999] block mb-3 uppercase tracking-widest">地點</label><input type="text" v-model="formData.location" placeholder="..." class="w-full bg-[#f7f6f6] rounded-2xl px-5 py-4 text-sm font-bold border-none"></div>
                              </div>
+                             
                              <div class="bg-[#f7f6f6] p-6 rounded-[2.5rem]">
-                                <div class="flex gap-3 mb-6"><input type="text" placeholder="新玩家姓名" v-model="newPlayerName" @keypress.enter="addPlayer" class="w-32 bg-white rounded-xl px-4 py-3 text-sm font-bold border-none"><div class="flex-1 flex gap-1 overflow-x-auto no-scrollbar py-1"><button v-for="cat in categoryOptions" :key="cat.value" @click="toggleNewPlayerCategory(cat.value)" class="category-chip shrink-0" :class="newPlayerCategories.includes(cat.value) ? 'bg-[#1893f8] text-white border-[#1893f8]' : 'bg-white text-[#999]'">{{ cat.label }}</button></div><button @click="addPlayer" class="bg-[#1893f8] text-white p-3 rounded-xl active-scale"><i data-lucide="plus" class="w-5 h-5"></i></button></div>
+                                <div class="flex justify-between items-center mb-6">
+                                    <label class="text-[11px] font-black text-[#999] uppercase tracking-widest">玩家數據錄入</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" placeholder="加入玩家" v-model="newPlayerName" @keypress.enter="addPlayer" class="w-32 bg-white rounded-xl px-4 py-2 text-xs font-bold border-none shadow-sm">
+                                        <button @click="addPlayer" class="bg-[#1893f8] text-white p-2 rounded-xl"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div v-for="(val, pName) in formData.playerStats" :key="pName" class="bg-white p-4 rounded-3xl flex flex-col gap-3 shadow-sm border border-white hover:border-[#eee]">
+                                    <div v-for="(val, pName) in formData.playerStats" :key="pName" class="bg-white p-4 rounded-3xl flex flex-col gap-3 shadow-sm border border-white hover:border-[#eee] transition-all">
                                         <div class="flex justify-between items-start">
                                             <div class="flex flex-col gap-1 overflow-hidden">
-                                                <div class="flex items-center gap-2"><button @click="removePlayerFromRecord(pName)" class="text-[#ccc] hover:text-red-500"><i data-lucide="x" class="w-3 h-3"></i></button><span class="font-black text-sm truncate">{{ pName }}</span></div>
-                                                <div class="flex gap-1 overflow-x-auto no-scrollbar"><button v-for="cat in categoryOptions" :key="cat.value" @click="updatePlayerCategory(pName, cat.value)" class="category-chip py-1" :class="getPlayerCategories(pName).includes(cat.value) ? 'bg-[#302b28] text-white' : 'bg-[#f7f6f6] text-[#ccc]'">{{ cat.label }}</button></div>
+                                                <div class="flex items-center gap-2">
+                                                    <button @click="removePlayerFromSession(pName)" class="text-[#ccc] hover:text-[#ff4d4d] transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+                                                    <span class="font-black text-sm truncate">{{ pName }}</span>
+                                                </div>
+                                                <div class="flex gap-1 overflow-x-auto no-scrollbar">
+                                                    <button v-for="cat in categoryOptions" :key="cat.value" @click="updatePlayerCategory(pName, cat.value)" class="category-chip py-1" :class="getPlayerCategories(pName).includes(cat.value) ? 'bg-[#302b28] text-white' : 'bg-[#f7f6f6] text-[#ccc]'">{{ cat.label }}</button>
+                                                </div>
                                             </div>
                                             <div class="flex gap-1 shrink-0"><button @click="toggleWinLoss(pName, 'win')" :class="val > 0 ? 'bg-[#1893f8] text-white shadow-md' : 'bg-[#f7f6f6] text-[#999]'" class="px-3 py-2 rounded-lg text-[10px] font-black transition-all">贏</button><button @click="toggleWinLoss(pName, 'loss')" :class="val < 0 ? 'bg-[#ff4d4d] text-white shadow-md' : 'bg-[#f7f6f6] text-[#999]'" class="px-3 py-2 rounded-lg text-[10px] font-black transition-all">輸</button></div>
                                         </div>
@@ -355,50 +359,32 @@
                                 </div>
                              </div>
                              
-                             <!-- 操作按鈕區：新增刪除功能 -->
                              <div class="flex flex-col gap-4">
                                 <div class="flex gap-4">
-                                    <button @click="isModalOpen = false" class="flex-1 py-5 rounded-[2rem] bg-[#f7f6f6] text-[#999] font-black active-scale transition-colors">取消</button>
-                                    <button @click="saveRecord" class="flex-[2] py-5 rounded-[2rem] bg-[#1893f8] text-white font-black active-scale shadow-xl">儲存今日戰報</button>
+                                    <button @click="viewMode = records[selectedDate] ? 'preview' : 'edit'; if(!records[selectedDate]) isModalOpen = false" class="flex-1 py-5 rounded-[2rem] bg-[#f7f6f6] text-[#999] font-black active-scale">取消</button>
+                                    <button @click="saveSession" class="flex-[2] py-5 rounded-[2rem] bg-[#1893f8] text-white font-black active-scale shadow-xl">儲存場次資料</button>
                                 </div>
-                                
-                                <!-- 刪除紀錄區域 -->
-                                <div v-if="records[selectedDate]" class="pt-4 border-t border-[#eee]">
-                                    <div v-if="!showDeleteConfirm" @click="showDeleteConfirm = true" class="w-full py-4 text-[#ff4d4d] text-sm font-black text-center cursor-pointer active-scale opacity-60 hover:opacity-100 flex items-center justify-center gap-2">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i> 刪除此日紀錄
-                                    </div>
-                                    <div v-else class="flex gap-4 animate-in slide-in-from-bottom-2">
-                                        <button @click="showDeleteConfirm = false" class="flex-1 py-4 bg-[#f7f6f6] rounded-2xl text-[#999] text-xs font-black">取消刪除</button>
-                                        <button @click="deleteCurrentRecord" class="flex-[2] py-4 bg-[#ff4d4d] rounded-2xl text-white text-xs font-black shadow-lg">確認刪除，此動作無法復原</button>
-                                    </div>
+                                <div v-if="editingSessionId" class="pt-4 border-t border-[#eee]">
+                                    <div v-if="!showDeleteConfirm" @click="showDeleteConfirm = true" class="w-full py-4 text-[#ff4d4d] text-sm font-black text-center flex items-center justify-center gap-2 cursor-pointer active-scale opacity-70"><i data-lucide="trash-2" class="w-4 h-4"></i> 刪除此場次紀錄</div>
+                                    <div v-else class="flex gap-4 animate-in slide-in-from-bottom-2"><button @click="showDeleteConfirm = false" class="flex-1 py-4 bg-[#f7f6f6] rounded-2xl text-[#999] text-xs font-black">取消</button><button @click="deleteSession" class="flex-[2] py-4 bg-[#ff4d4d] rounded-2xl text-white text-xs font-black shadow-lg">確認刪除</button></div>
                                 </div>
                              </div>
                         </div>
                     </div>
-                    <div v-else class="space-y-8 animate-in fade-in duration-300">
-                        <div v-if="records[selectedDate]" class="space-y-8">
-                             <div class="bg-[#f7f6f6] p-6 rounded-[2.5rem] grid grid-cols-2 gap-4 text-center"><div class="border-r border-[#eee]"><p class="text-[10px] text-[#999] font-black uppercase mb-1">規格</p><p class="font-bold">{{ records[selectedDate].stakes }} / {{ records[selectedDate].rounds }}將</p></div><div><p class="text-[10px] text-[#999] font-black uppercase mb-1">地點</p><p class="font-bold truncate px-2">{{ records[selectedDate].location || '未標註' }}</p></div></div>
-                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div v-for="(s, n) in records[selectedDate].playerStats" :key="n" class="flex justify-between p-5 bg-white border border-[#eee] rounded-[1.5rem] items-center"><b>{{ n }}</b><span :class="s >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="font-black text-lg">{{ s > 0 ? '+' : '' }}{{ s }}</span></div></div>
-                        </div>
-                        <button @click="isModalOpen = false" class="w-full py-5 rounded-[2rem] bg-[#201f1f] text-white font-black">關閉</button>
-                    </div>
-                </div>
-            </div>
-        </transition>
 
-        <!-- 個人明細 Modal -->
-        <transition name="fade">
-            <div v-if="detailPlayer" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
-                <div class="bg-white rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-                    <div class="p-8 pb-5 flex justify-between items-center border-b border-[#f7f6f6]">
-                        <div class="flex items-center gap-4"><i data-lucide="user" class="w-6 h-6 text-[#1893f8]"></i><div><h3 class="text-xl font-black">{{ detailPlayer }} 戰鬥紀錄</h3><p class="text-[10px] text-[#999] font-bold uppercase">{{ monthFilter === 'all' ? '跨年度累計' : currentYear + '年 ' + monthFilter + '月 篩選' }}</p></div></div>
-                        <button @click="detailPlayer = null" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999]"><i data-lucide="x" class="w-5 h-5"></i></button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-6 md:p-10 space-y-4 no-scrollbar">
-                        <div v-for="(h, i) in getPlayerHistory(detailPlayer)" :key="i" class="bg-[#f7f6f6] rounded-2xl p-5 flex justify-between items-center border border-transparent hover:border-[#eee] hover:bg-white transition-all">
-                            <div><div class="text-sm font-black mb-1">{{ h.date }}</div><div class="text-[10px] text-[#999] font-bold">{{ h.location }} • {{ h.stakes }}</div></div>
-                            <div :class="h.amount >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="text-2xl font-black">{{ h.amount > 0 ? '+' : '' }}{{ h.amount }}</div>
+                    <div v-else class="space-y-6 animate-in fade-in duration-300">
+                        <div v-if="records[selectedDate] && records[selectedDate].sessions" class="space-y-4">
+                             <div v-for="sess in records[selectedDate].sessions" :key="sess.id" class="bg-[#f7f6f6] rounded-[2rem] p-6 border border-[#eee] hover:border-[#1893f8] transition-all">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div><p class="text-[10px] text-[#999] font-black uppercase mb-1">場次明細</p><p class="font-bold text-[#302b28]">{{ sess.stakes }} • {{ sess.rounds }}將 • {{ sess.location || '未標註' }}</p></div>
+                                    <button @click="startEditSession(sess)" class="bg-white px-4 py-2 rounded-xl text-xs font-black text-[#1893f8] shadow-sm border border-[#eee] active-scale">編輯</button>
+                                </div>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <div v-for="(val, name) in sess.playerStats" :key="name" class="flex flex-col text-center p-2 bg-white rounded-xl shadow-sm border border-white"><span class="text-[8px] text-[#999] font-bold truncate">{{ name }}</span><span :class="val >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="font-black text-xs">{{ val > 0 ? '+' : '' }}{{ val }}</span></div>
+                                </div>
+                             </div>
                         </div>
+                        <button @click="addNewSession" class="w-full py-5 rounded-[2rem] bg-[#1893f8] text-white font-black shadow-xl active-scale flex items-center justify-center gap-2"><i data-lucide="plus" class="w-5 h-5"></i> 新增另一場戰報</button>
                     </div>
                 </div>
             </div>
@@ -409,18 +395,33 @@
             <div v-if="isMonthDetailOpen" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
                 <div class="bg-white rounded-[3rem] w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                     <div class="p-8 pb-5 flex justify-between items-center border-b border-[#f7f6f6]">
-                        <div class="flex items-center gap-4"><i data-lucide="file-text" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-xl font-black">{{ currentMonth + 1 }}月 戰鬥明細</h3></div>
+                        <div class="flex items-center gap-4"><i data-lucide="file-text" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-xl font-black">當月戰鬥明細</h3></div>
                         <button @click="isMonthDetailOpen = false" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999]"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
                     <div class="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
-                        <div v-for="(rec, date) in currentMonthRecords" :key="date" class="bg-[#f7f6f6] rounded-3xl p-5 border border-transparent hover:border-[#eee] hover:bg-white transition-all">
-                            <div class="flex justify-between items-start mb-4 pb-2 border-b border-white"><div class="text-sm font-black text-[#302b28]">{{ date }}</div><div class="text-[10px] text-[#999] font-bold">{{ rec.stakes }} • {{ rec.rounds }}將</div></div>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                <div v-for="(val, name) in rec.playerStats" :key="name" class="flex flex-col text-center p-2 bg-white rounded-xl shadow-sm border border-white">
-                                    <span class="text-[8px] text-[#999] font-bold truncate">{{ name }}</span>
-                                    <span :class="val >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="font-black text-xs">{{ val > 0 ? '+' : '' }}{{ val }}</span>
-                                </div>
+                        <template v-for="(rec, date) in currentMonthRecords" :key="date">
+                            <div v-for="sess in rec.sessions" :key="sess.id" class="bg-[#f7f6f6] rounded-3xl p-5 border border-transparent hover:border-[#eee] hover:bg-white transition-all">
+                                <div class="flex justify-between items-start mb-4 pb-2 border-b border-white"><div class="text-sm font-black text-[#302b28]">{{ date }}</div><div class="text-[10px] text-[#999] font-bold">{{ sess.stakes }} • {{ sess.rounds }}將</div></div>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><div v-for="(val, name) in sess.playerStats" :key="name" class="flex flex-col text-center p-2 bg-white rounded-xl shadow-sm"><span class="text-[8px] text-[#999] font-bold">{{ name }}</span><span :class="val >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="font-black text-xs">{{ val > 0 ? '+' : '' }}{{ val }}</span></div></div>
                             </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- 個人明細 Modal -->
+        <transition name="fade">
+            <div v-if="detailPlayer" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
+                <div class="bg-white rounded-[3.5rem] w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+                    <div class="p-8 md:p-10 pb-5 flex justify-between items-center border-b border-[#f7f6f6]">
+                        <div class="flex items-center gap-4"><i data-lucide="user" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-xl font-black">{{ detailPlayer }} 紀錄</h3></div>
+                        <button @click="detailPlayer = null" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999] active-scale"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 md:p-10 space-y-4 no-scrollbar">
+                        <div v-for="(h, i) in getPlayerHistory(detailPlayer)" :key="i" class="bg-[#f7f6f6] rounded-2xl p-5 flex justify-between items-center border border-transparent hover:border-[#eee] hover:bg-white transition-all shadow-sm">
+                            <div><div class="text-sm font-black mb-1">{{ h.date }}</div><div class="text-[10px] text-[#999] font-bold">{{ h.location }} • {{ h.stakes }}</div></div>
+                            <div :class="h.amount >= 0 ? 'text-[#1893f8]' : 'text-[#ff4d4d]'" class="text-2xl font-black">{{ h.amount > 0 ? '+' : '' }}{{ h.amount }}</div>
                         </div>
                     </div>
                 </div>
@@ -431,7 +432,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, query } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, onSnapshot, query, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_Wc8n7-3AZzDCPRv6DLqjRTeyk9xmyzE",
@@ -449,12 +450,7 @@
                 // --- 1. 工具與基礎常數 ---
                 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
                 const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
-                const normalizeDateString = (str) => {
-                    if (!str || typeof str !== 'string') return str;
-                    const parts = str.split('-');
-                    if (parts.length !== 3) return str;
-                    return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
-                };
+                const normalizeDateString = (str) => { if (!str || typeof str !== 'string') return str; const parts = str.split('-'); return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`; };
                 const formatDateKey = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
                 // --- 2. 狀態宣告 ---
@@ -464,6 +460,7 @@
                 const monthFilter = ref('all');
                 const currentYear = ref(new Date().getFullYear());
                 const currentMonth = ref(new Date().getMonth());
+                const leaderboardTab = ref('all'); // 排行切換：all, kinship
                 const records = ref({});
                 const players = ref([]);
                 const isVerified = ref(false);
@@ -476,19 +473,20 @@
                 const detailPlayer = ref(null);
                 const cloudStatus = ref('disconnected');
                 const showDeleteConfirm = ref(false);
-                
-                // 表單資料
-                const formData = ref({ stakes: '30/10', location: '', rounds: '1', playerStats: {} });
+                const editingSessionId = ref(null);
+
+                const formData = ref({ id: '', stakes: '30/10', location: '', rounds: '1', playerStats: {} });
                 const newPlayerName = ref('');
                 const newPlayerCategories = ref(['other']);
                 const categoryOptions = [ { label: '家人', value: 'family' }, { label: '情人', value: 'couple' }, { label: '其他', value: 'other' } ];
 
-                // --- 3. 核心邏輯函式 ---
-                const getScoreByName = (date, name) => {
+                // --- 3. 數據計算邏輯 ---
+                const getDailyMergedScore = (date, name) => {
                     const rec = records.value[date];
-                    if (!rec || !rec.playerStats) return null;
-                    const cleanName = String(name).trim();
-                    return rec.playerStats[cleanName] !== undefined ? rec.playerStats[cleanName] : null;
+                    if (!rec || !rec.sessions) return null;
+                    let total = 0, found = false;
+                    rec.sessions.forEach(sess => { if (sess.playerStats && sess.playerStats[name] !== undefined) { total += sess.playerStats[name]; found = true; } });
+                    return found ? total : null;
                 };
 
                 const getPlayerCategories = (name) => {
@@ -501,13 +499,14 @@
                     const cleanName = String(name).trim();
                     Object.entries(records.value).forEach(([date, rec]) => {
                         const [y, m] = date.split('-').map(Number);
-                        if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value))) {
-                            if (rec.playerStats && rec.playerStats[cleanName] !== undefined) {
-                                games++;
-                                rounds += (Number(rec.rounds) || 0);
-                                const val = rec.playerStats[cleanName];
-                                if (val > 0) { wins++; winnings += val; } else if (val < 0) { losses += val; }
-                            }
+                        if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) && rec.sessions) {
+                            rec.sessions.forEach(sess => {
+                                if (sess.playerStats && sess.playerStats[cleanName] !== undefined) {
+                                    games++; rounds += (Number(sess.rounds) || 0);
+                                    const val = sess.playerStats[cleanName];
+                                    if (val > 0) { wins++; winnings += val; } else if (val < 0) { losses += val; }
+                                }
+                            });
                         }
                     });
                     const winRate = games > 0 ? ((wins / games) * 100).toFixed(0) : 0;
@@ -519,22 +518,32 @@
                     const cleanName = String(name).trim();
                     Object.entries(records.value).forEach(([date, rec]) => {
                         const [y, m] = date.split('-').map(Number);
-                        if (y === currentYear.value && rec.playerStats && rec.playerStats[cleanName] !== undefined) {
-                            if (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) {
-                                history.push({ date, amount: rec.playerStats[cleanName], location: rec.location || '未標註', stakes: rec.stakes });
-                            }
+                        if (y === currentYear.value && rec.sessions && (monthFilter.value === 'all' || m === parseInt(monthFilter.value))) {
+                            rec.sessions.forEach(sess => {
+                                if (sess.playerStats && sess.playerStats[cleanName] !== undefined) {
+                                    history.push({ date, amount: sess.playerStats[cleanName], location: sess.location || '未標註', stakes: sess.stakes });
+                                }
+                            });
                         }
                     });
                     return history.sort((a, b) => b.date.localeCompare(a.date));
                 };
 
-                const checkPassword = () => {
-                    if (passwordInput.value === '0302') { isVerified.value = true; passwordError.value = false; passwordInput.value = ''; }
-                    else { passwordError.value = true; passwordInput.value = ''; }
+                // --- 4. 方法 ---
+                const updatePlayerCategory = async (name, catVal) => {
+                    const player = players.value.find(p => String(p.name).trim() === String(name).trim());
+                    if (!player) return;
+                    let newCats = [...ensureCategoryArray(player.category)];
+                    if (newCats.includes(catVal)) newCats = newCats.filter(c => c !== catVal); else newCats.push(catVal);
+                    if (newCats.length === 0) newCats = ['other'];
+                    const updatedList = players.value.map(p => p.name === player.name ? { ...p, category: newCats } : p);
+                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
                 };
 
-                const handleEditTabClick = () => { viewMode.value = 'edit'; showDeleteConfirm.value = false; };
+                const removePlayerFromSession = (pName) => { delete formData.value.playerStats[pName]; };
                 const handleManualRefresh = () => { cloudStatus.value = 'syncing'; fetchData(); setTimeout(() => { if(user.value) cloudStatus.value = 'connected'; }, 1000); };
+                const checkPassword = () => { if (passwordInput.value === '0302') { isVerified.value = true; passwordError.value = false; passwordInput.value = ''; } else { passwordError.value = true; passwordInput.value = ''; } };
+                const handleEditTabClick = () => { viewMode.value = 'edit'; showDeleteConfirm.value = false; };
                 const prevMonth = () => { if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; } else { currentMonth.value--; } };
                 const nextMonth = () => { if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; } else { currentMonth.value++; } };
                 
@@ -542,39 +551,43 @@
                     const standardKey = formatDateKey(currentYear.value, currentMonth.value + 1, day);
                     selectedDate.value = standardKey;
                     const existing = records.value[standardKey];
-                    isVerified.value = false; passwordInput.value = ''; passwordError.value = false; showDeleteConfirm.value = false;
-                    if (existing) { formData.value = JSON.parse(JSON.stringify(existing)); viewMode.value = 'preview'; }
-                    else { const initialStats = {}; players.value.forEach(p => initialStats[p.name] = 0); formData.value = { stakes: '30/10', location: '', rounds: '1', playerStats: initialStats }; viewMode.value = 'edit'; }
+                    showDeleteConfirm.value = false;
+                    if (existing && existing.sessions && existing.sessions.length > 0) { viewMode.value = 'preview'; } 
+                    else { addNewSession(); }
                     isModalOpen.value = true;
                 };
 
-                const handleQuickAdd = () => {
-                    const now = new Date();
-                    selectedDate.value = formatDateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
-                    isVerified.value = false; passwordInput.value = ''; passwordError.value = false; showDeleteConfirm.value = false;
-                    const initialStats = {}; players.value.forEach(p => initialStats[p.name] = 0);
-                    formData.value = { stakes: '30/10', location: '', rounds: '1', playerStats: initialStats }; viewMode.value = 'edit';
-                    isModalOpen.value = true;
+                const startEditSession = (sess) => { formData.value = JSON.parse(JSON.stringify(sess)); editingSessionId.value = sess.id; viewMode.value = 'edit'; };
+                const addNewSession = () => {
+                    const initialStats = {};
+                    players.value.forEach(p => initialStats[p.name] = 0);
+                    formData.value = { id: Date.now().toString(), stakes: '30/10', location: '', rounds: '1', playerStats: initialStats };
+                    editingSessionId.value = null; viewMode.value = 'edit';
+                    if (!isModalOpen.value) isModalOpen.value = true;
                 };
 
-                const saveRecord = async () => {
-                    cloudStatus.value = 'syncing';
-                    try { await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', selectedDate.value), formData.value); isModalOpen.value = false; cloudStatus.value = 'connected'; }
-                    catch (e) { cloudStatus.value = 'disconnected'; }
-                };
-
-                // --- 4. 刪除戰報邏輯 ---
-                const deleteCurrentRecord = async () => {
-                    if (!user.value || !selectedDate.value) return;
+                const saveSession = async () => {
                     cloudStatus.value = 'syncing';
                     try {
-                        await deleteDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', selectedDate.value));
-                        isModalOpen.value = false;
-                        showDeleteConfirm.value = false;
-                        cloudStatus.value = 'connected';
-                    } catch (e) {
-                        cloudStatus.value = 'disconnected';
-                    }
+                        const dateDocRef = doc(db, 'artifacts', appId.value, 'public', 'data', 'records', selectedDate.value);
+                        let sessions = records.value[selectedDate.value]?.sessions || [];
+                        if (editingSessionId.value) { sessions = sessions.map(s => s.id === editingSessionId.value ? formData.value : s); } 
+                        else { sessions.push(formData.value); }
+                        await setDoc(dateDocRef, { sessions });
+                        isModalOpen.value = false; cloudStatus.value = 'connected';
+                    } catch (e) { cloudStatus.value = 'disconnected'; }
+                };
+
+                const deleteSession = async () => {
+                    cloudStatus.value = 'syncing';
+                    try {
+                        const dateDocRef = doc(db, 'artifacts', appId.value, 'public', 'data', 'records', selectedDate.value);
+                        let sessions = records.value[selectedDate.value]?.sessions || [];
+                        sessions = sessions.filter(s => s.id !== editingSessionId.value);
+                        if (sessions.length === 0) { await deleteDoc(dateDocRef); } 
+                        else { await setDoc(dateDocRef, { sessions }); }
+                        isModalOpen.value = false; showDeleteConfirm.value = false; cloudStatus.value = 'connected';
+                    } catch (e) { cloudStatus.value = 'disconnected'; }
                 };
 
                 const downloadImage = () => {
@@ -587,7 +600,11 @@
                     if (!user.value) return;
                     onSnapshot(collection(db, 'artifacts', appId.value, 'public', 'data', 'records'), (snap) => {
                         const data = {};
-                        snap.forEach(d => { data[normalizeDateString(d.id)] = d.data(); });
+                        snap.forEach(d => { 
+                            const docData = d.data();
+                            if (!docData.sessions && docData.playerStats) { docData.sessions = [{ ...docData, id: 'legacy-' + d.id }]; }
+                            data[normalizeDateString(d.id)] = docData; 
+                        });
                         records.value = data;
                     });
                     onSnapshot(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), (snap) => {
@@ -596,25 +613,13 @@
                 };
 
                 const addPlayer = async () => {
-                    const name = newPlayerName.value.trim();
-                    if (!user.value || !name) return;
+                    const name = newPlayerName.value.trim(); if (!user.value || !name) return;
                     if (!players.value.find(p => p.name === name)) {
                         const updatedList = [...players.value, { name, category: newPlayerCategories.value }];
                         await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
                     }
-                    formData.value.playerStats[name] = 0; newPlayerName.value = '';
-                };
-
-                const toggleNewPlayerCategory = (val) => { if (newPlayerCategories.value.includes(val)) newPlayerCategories.value = newPlayerCategories.value.filter(c => c !== val); else newPlayerCategories.value.push(val); };
-
-                const updatePlayerCategory = async (name, catVal) => {
-                    const player = players.value.find(p => String(p.name).trim() === String(name).trim());
-                    if (!player) return;
-                    let newCats = [...ensureCategoryArray(player.category)];
-                    if (newCats.includes(catVal)) newCats = newCats.filter(c => c !== catVal); else newCats.push(catVal);
-                    if (newCats.length === 0) newCats = ['other'];
-                    const updatedList = players.value.map(p => p.name === player.name ? { ...p, category: newCats } : p);
-                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
+                    if(!formData.value.playerStats[name]) formData.value.playerStats[name] = 0;
+                    newPlayerName.value = '';
                 };
 
                 // --- 5. 計算屬性 ---
@@ -623,42 +628,55 @@
                     players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, totalWinnings: 0, totalLosses: 0, participateCount: 0, winCount: 0 });
                     Object.entries(records.value).forEach(([date, rec]) => {
                         const [y, m] = date.split('-').map(Number);
-                        if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value))) {
-                            Object.entries(rec.playerStats).forEach(([name, val]) => {
-                                const cleanName = String(name).trim();
-                                if (!map[cleanName]) return;
-                                map[cleanName].totalProfit += val;
-                                map[cleanName].participateCount += 1;
-                                if (val > 0) { map[cleanName].totalWinnings += val; map[cleanName].winCount += 1; } else { map[cleanName].totalLosses += val; }
+                        if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) && rec.sessions) {
+                            rec.sessions.forEach(sess => {
+                                Object.entries(sess.playerStats).forEach(([name, val]) => {
+                                    const cleanName = String(name).trim();
+                                    if (!map[cleanName]) return;
+                                    map[cleanName].totalProfit += val; map[cleanName].participateCount += 1;
+                                    if (val > 0) { map[cleanName].totalWinnings += val; map[cleanName].winCount += 1; } else { map[cleanName].totalLosses += val; }
+                                });
                             });
                         }
                     });
                     return Object.values(map).filter(s => s.participateCount > 0).map(s => ({ ...s, winRate: ((s.winCount / s.participateCount) * 100).toFixed(1) })).sort((a, b) => b.totalProfit - a.totalProfit);
                 });
 
-                // --- 6. 初始化與掛載 ---
+                const displayLeaderboard = computed(() => {
+                    return leaderboard.value.filter(p => {
+                        if (leaderboardTab.value === 'all') return true;
+                        const cats = getPlayerCategories(p.name);
+                        // 合併顯示：只要是家人或情人就顯示在親友榜
+                        return cats.includes('family') || cats.includes('couple');
+                    });
+                });
+
+                // --- 6. 初始化 ---
                 const firebaseApp = initializeApp(firebaseConfig);
                 const auth = getAuth(firebaseApp);
                 const db = getFirestore(firebaseApp);
 
                 onMounted(async () => { lucide.createIcons(); await signInAnonymously(auth); onAuthStateChanged(auth, (u) => { user.value = u; if (u) { cloudStatus.value = 'connected'; fetchData(); } }); });
-                watch([activeTab, isModalOpen, detailPlayer, isVerified, isMonthDetailOpen], () => { setTimeout(() => lucide.createIcons(), 50); });
+                watch([activeTab, isModalOpen, detailPlayer, isVerified, isMonthDetailOpen, leaderboardTab], () => { setTimeout(() => lucide.createIcons(), 50); });
 
                 return {
-                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players, 
-                    isModalOpen, viewMode, selectedDate, detailPlayer, cloudStatus, isMonthDetailOpen, showDeleteConfirm,
-                    formData, checkPassword, handleEditTabClick, handleManualRefresh, handleDateClick, handleQuickAdd, saveRecord, deleteCurrentRecord, downloadImage, formatDateKey, getScoreByName, getPlayerCategories, getHomePlayerStats,
+                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players, yearOptions: computed(() => { const base = new Date().getFullYear(); const list = []; for(let i = base - 5; i <= base + 5; i++) list.push(i); Object.keys(records.value).forEach(date => { const yr = parseInt(date.split('-')[0]); if(!list.includes(yr)) list.push(yr); }); return [...new Set(list)].sort((a,b) => a-b); }),
+                    isModalOpen, viewMode, selectedDate, detailPlayer, cloudStatus, isMonthDetailOpen, showDeleteConfirm, editingSessionId, leaderboardTab,
+                    formData, checkPassword, handleEditTabClick, handleManualRefresh, handleDateClick, handleQuickAdd: () => { const now = new Date(); selectedDate.value = formatDateKey(now.getFullYear(), now.getMonth()+1, now.getDate()); isVerified.value = false; addNewSession(); }, 
+                    saveSession, deleteSession, startEditSession, addNewSession, downloadImage, formatDateKey, getDailyMergedScore, getPlayerCategories, getHomePlayerStats, updatePlayerCategory, removePlayerFromSession, getPlayerHistory, displayLeaderboard,
                     homeCardTitle: computed(() => { if (monthFilter.value === 'all') return 'Yearly Balance'; const mName = monthNames[parseInt(monthFilter.value) - 1]; return `${mName} Balance`; }),
                     homeFilteredPlayers: computed(() => players.value.filter(p => { const cats = ensureCategoryArray(p.category); return cats.includes('family') || cats.includes('couple'); })),
-                    yearOptions: computed(() => { const base = new Date().getFullYear(); const list = []; for(let i = base - 5; i <= base + 5; i++) list.push(i); Object.keys(records.value).forEach(date => { const yr = parseInt(date.split('-')[0]); if(!list.includes(yr)) list.push(yr); }); return [...new Set(list)].sort((a,b) => a-b); }),
                     stats: computed(() => {
                         let familyProfit = 0, coupleProfit = 0;
                         Object.entries(records.value).forEach(([date, rec]) => {
                             const [y, m] = date.split('-').map(Number);
-                            if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value))) {
-                                Object.entries(rec.playerStats).forEach(([name, amount]) => {
-                                    const p = players.value.find(pl => String(pl.name).trim() === String(name).trim());
-                                    if (p) { const cats = ensureCategoryArray(p.category); if (cats.includes('family')) familyProfit += amount; if (cats.includes('couple')) coupleProfit += amount; }
+                            if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) && rec.sessions) {
+                                rec.sessions.forEach(sess => {
+                                    Object.entries(sess.playerStats).forEach(([name, amount]) => {
+                                        const cleanName = String(name).trim();
+                                        const p = players.value.find(pl => String(pl.name).trim() === cleanName);
+                                        if (p) { const cats = ensureCategoryArray(p.category); if (cats.includes('family')) familyProfit += amount; if (cats.includes('couple')) coupleProfit += amount; }
+                                    });
                                 });
                             }
                         });
@@ -669,8 +687,10 @@
                         players.value.forEach(p => { monthMap[p.name] = { name: p.name, totalProfit: 0, participateCount: 0 }; });
                         Object.entries(records.value).forEach(([date, rec]) => {
                             const [y, m] = date.split('-').map(Number);
-                            if (y === currentYear.value && m === (currentMonth.value + 1)) {
-                                Object.entries(rec.playerStats).forEach(([name, amount]) => { if (monthMap[name]) { monthMap[name].totalProfit += amount; monthMap[name].participateCount += 1; } });
+                            if (y === currentYear.value && m === (currentMonth.value + 1) && rec.sessions) {
+                                rec.sessions.forEach(sess => {
+                                    Object.entries(sess.playerStats).forEach(([name, amount]) => { if (monthMap[name]) { monthMap[name].totalProfit += amount; monthMap[name].participateCount += 1; } });
+                                });
                             }
                         });
                         return Object.values(monthMap).filter(s => s.participateCount > 0).sort((a, b) => b.totalProfit - a.totalProfit);
@@ -689,21 +709,24 @@
                     cloudStatusText: computed(() => ({'connected':'雲端已同步', 'disconnected':'離線狀態', 'syncing':'正在同步...'}[cloudStatus.value])),
                     isVerified, passwordInput, passwordError, categoryOptions,
                     getFilteredProfit: (name) => {
-                        let total = 0;
-                        const cleanName = String(name).trim();
+                        let total = 0; const cleanName = String(name).trim();
                         Object.entries(records.value).forEach(([date, rec]) => {
                             const [y, m] = date.split('-').map(Number);
-                            if (y === currentYear.value && rec.playerStats && rec.playerStats[cleanName] !== undefined) {
-                                if (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) total += rec.playerStats[cleanName];
+                            if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) && rec.sessions) {
+                                rec.sessions.forEach(sess => { if (sess.playerStats && sess.playerStats[cleanName] !== undefined) total += sess.playerStats[cleanName]; });
                             }
                         });
                         return total;
                     },
-                    getPlayerHistory, updatePlayerCategory,
-                    removePlayerFromRecord: (name) => { delete formData.value.playerStats[name]; },
+                    getPlayerParticipateCount: (name) => {
+                        const cleanName = String(name).trim(); let count = 0;
+                        Object.values(records.value).forEach(r => { if(r.sessions) r.sessions.forEach(s => { if(s.playerStats && s.playerStats[cleanName] !== undefined) count++; }); });
+                        return count;
+                    },
                     updateStat: (name, val) => { const isLoss = formData.value.playerStats[name] < 0; formData.value.playerStats[name] = isLoss ? -Math.abs(val) : Math.abs(val); },
                     toggleWinLoss: (name, type) => { const val = Math.abs(formData.value.playerStats[name] || 0); formData.value.playerStats[name] = type === 'win' ? val : -val; },
-                    prevMonth, nextMonth, addPlayer, toggleNewPlayerCategory, newPlayerName, newPlayerCategories
+                    prevMonth, nextMonth, addPlayer, toggleNewPlayerCategory: (val) => { if (newPlayerCategories.value.includes(val)) newPlayerCategories.value = newPlayerCategories.value.filter(c => c !== val); else newPlayerCategories.value.push(val); },
+                    newPlayerName, newPlayerCategories
                 };
             }
         }).mount('#app');
