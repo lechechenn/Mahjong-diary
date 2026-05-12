@@ -78,7 +78,6 @@
             
             <!-- Header 標題列 -->
             <div class="pt-6 sm:pt-8 pb-1 text-center relative">
-                <!-- 左上角功能圖示 -->
                 <div class="absolute left-0 top-6 sm:top-8 flex items-center gap-0.5 sm:gap-1.5 no-export">
                     <button @click="handleManualRefresh" class="p-1.5 sm:p-2 text-[#999] active-scale" title="刷新同步">
                         <i data-lucide="rotate-cw" :class="{'animate-spin text-[#1893f8]': cloudStatus === 'syncing'}" class="w-5 h-5"></i>
@@ -87,13 +86,12 @@
                         <button @click="downloadImage" class="p-1.5 sm:p-2 text-[#999] active-scale" title="截圖">
                             <i data-lucide="download" class="w-5 h-5"></i>
                         </button>
-                        <button @click="isMonthDetailOpen = true" class="p-1.5 sm:p-2 text-[#999] active-scale" title="當月明細">
+                        <button @click="isMonthDetailOpen = true" class="p-1.5 sm:p-2 text-[#999] active-scale" title="明細">
                             <i data-lucide="file-text" class="w-5 h-5"></i>
                         </button>
                     </template>
                 </div>
 
-                <!-- 右上角新增 -->
                 <div class="absolute right-0 top-6 sm:top-8 flex items-center no-export">
                     <button @click="handleQuickAdd" class="p-1.5 sm:p-2 text-[#999] active-scale">
                         <i data-lucide="plus" class="w-7 h-7"></i>
@@ -112,7 +110,6 @@
                     </div>
                 </div>
 
-                <!-- 時間篩選器 -->
                 <div v-if="activeTab === 'home' || activeTab === 'leaderboard'" class="mt-4 no-export w-full px-1 flex gap-3 justify-center items-center animate-in fade-in slide-in-from-top-1 duration-300">
                     <div class="relative w-fit">
                         <select v-model="currentYear" class="appearance-none bg-white border border-[#eee] rounded-full pl-6 pr-10 py-3 text-xs font-black text-[#1893f8] shadow-sm focus:outline-none cursor-pointer text-center min-w-[100px]">
@@ -231,7 +228,6 @@
                         </div>
                     </div>
                     
-                    <!-- 本月統計總覽 -->
                     <div class="bg-white rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-8 shadow-sm border border-[#eee] mt-4 space-y-8 animate-in fade-in duration-500">
                         <div class="flex items-center justify-center gap-2 border-b border-[#f7f6f6] pb-5"><i data-lucide="award" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-lg font-black text-[#302b28]">{{ currentMonth + 1 }}月 表現總覽</h3></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -286,7 +282,7 @@
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 mt-2 mb-6 bg-white/60 p-5 rounded-3xl text-center shadow-inner relative z-10">
                                     <div><div class="text-[10px] font-black text-[#999] uppercase mb-1 tracking-widest leading-none">獲利統計</div><div class="text-xl font-black text-[#1893f8] leading-none">+{{ (item.totalWinnings || 0).toLocaleString() }}</div></div>
-                                    <div class="border-l border-[#eee]"><div class="text-[10px] font-black text-[#999] uppercase mb-1 tracking-widest leading-none">損失統計</div><div class="text-xl font-black text-[#ff4d4d] leading-none">{{ (item.totalLosses || 0).toLocaleString() }}</div></div>
+                                    <div class="border-l border-[#eee]"><div class="text-[10px] font-black text-[#999] uppercase mb-1 tracking-widest導致 leading-none">損失統計</div><div class="text-xl font-black text-[#ff4d4d] leading-none">{{ (item.totalLosses || 0).toLocaleString() }}</div></div>
                                 </div>
                                 <div class="grid grid-cols-3 gap-2 py-4 border-t border-white/60 items-center relative z-10">
                                     <div class="flex flex-col items-center leading-none"><span class="text-sm font-black text-[#302b28] mb-1 leading-none">{{ item.participateCount }}場</span><span class="text-[8px] text-[#999] font-black uppercase tracking-widest leading-none">紀錄</span></div>
@@ -362,7 +358,7 @@
                                 <div class="flex flex-col gap-4 mb-6">
                                     <div class="flex justify-between items-center">
                                         <label class="text-[11px] font-black text-[#999] uppercase tracking-widest leading-none">參與玩家 (加入/移除)</label>
-                                        <button @click="isPlayerMgrOpen = true" class="text-[9px] font-black text-[#1893f8] uppercase underline tracking-tighter">管理玩家</button>
+                                        <button @click="isPlayerMgrOpen = true" class="text-[9px] font-black text-[#1893f8] uppercase underline tracking-tighter">管理名單</button>
                                     </div>
                                     <div class="flex flex-wrap gap-2 border-b border-white pb-4 mb-2">
                                         <button v-for="p in players" :key="p.name" 
@@ -404,7 +400,7 @@
                                 </div>
                                 <div v-if="editingSessionId" class="pt-4 border-t border-[#eee]">
                                     <div v-if="!showDeleteConfirm" @click="showDeleteConfirm = true" class="w-full py-4 text-[#ff4d4d] text-sm font-black text-center flex items-center justify-center gap-2 cursor-pointer active-scale opacity-70 leading-none"><i data-lucide="trash-2" class="w-4 h-4"></i> 刪除此場次紀錄</div>
-                                    <div v-else class="flex gap-4 animate-in slide-in-from-bottom-2"><button @click="showDeleteConfirm = false" class="flex-1 py-4 bg-[#f7f6f6] rounded-2xl text-[#999] text-xs font-black shadow-inner leading-none">取消</button><button @click="deleteSession" class="flex-[2] py-4 bg-[#ff4d4d] rounded-2xl text-white text-xs font-black shadow-lg leading-none">確認刪除</button></div>
+                                    <div v-else class="flex gap-4 animate-in slide-in-from-bottom-2"><button @click="showDeleteConfirm = false" class="flex-1 py-4 bg-[#f7f6f6] rounded-2xl text-[#999] text-xs font-black shadow-inner leading-none">取消</button><button @click="deleteSession" class="flex-[2] py-4 bg-[#ff4d4d] rounded-2xl text-white text-xs font-black shadow-lg">確認刪除</button></div>
                                 </div>
                              </div>
                         </div>
@@ -430,13 +426,12 @@
                         </div>
                         <button @click="addNewSession" class="w-full py-5 rounded-[2rem] bg-[#1893f8] text-white font-black shadow-xl active-scale flex items-center justify-center gap-2 leading-none"><i data-lucide="plus" class="w-5 h-5"></i> 新增另一場戰報</button>
 
-                        <!-- 場次刪除確認提醒 -->
                         <div v-if="isDelSessConfOpen" class="absolute inset-0 bg-white/95 backdrop-blur-md flex items-center justify-center p-6 z-50 rounded-[2rem] animate-in fade-in duration-200">
                             <div class="text-center space-y-6 max-w-[280px]">
-                                <div class="w-16 h-16 bg-[#ff4d4d]/10 text-[#ff4d4d] rounded-full flex items-center justify-center mx-auto">
+                                <div class="w-16 h-16 bg-[#ff4d4d]/10 text-[#ff4d4d] rounded-full flex items-center justify-center mx-auto leading-none">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                                 </div>
-                                <div><h4 class="font-black text-lg text-[#302b28] mb-2 leading-tight">確定要刪除這場戰報嗎？</h4><p class="text-[10px] text-[#999] font-bold">刪除後數據將無法找回，請確認是否繼續。</p></div>
+                                <div><h4 class="font-black text-lg text-[#302b28] mb-2 leading-tight">確定要刪除這場戰報嗎？</h4><p class="text-[10px] text-[#999] font-bold">刪除後數據將無法找回。</p></div>
                                 <div class="flex gap-4"><button @click="isDelSessConfOpen = false" class="flex-1 py-3.5 bg-[#f7f6f6] rounded-2xl text-[#999] font-black text-xs active-scale">取消</button><button @click="executeDeleteSession" class="flex-1 py-3.5 bg-[#ff4d4d] text-white rounded-2xl font-black text-xs active-scale shadow-lg">確認刪除</button></div>
                             </div>
                         </div>
@@ -445,43 +440,56 @@
             </div>
         </transition>
 
-        <!-- 管理玩家 Modal -->
+        <!-- 系統玩家管理 Modal -->
         <transition name="fade">
             <div v-if="isPlayerMgrOpen" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[120] p-4">
                 <div class="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                     <div class="p-8 pb-5 flex justify-between items-center border-b border-[#f7f6f6]">
                         <div class="flex items-center gap-4"><i data-lucide="users" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-xl font-black leading-none">系統玩家管理</h3></div>
-                        <button @click="isPlayerMgrOpen = false" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999] active-scale transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        <div class="flex items-center gap-2">
+                             <button @click="isCategoryMgrOpen = true" class="text-[10px] font-black text-[#1893f8] uppercase underline tracking-tighter">管理分類</button>
+                             <button @click="isPlayerMgrOpen = false" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999] active-scale transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
                     </div>
                     <div class="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar relative">
-                        <div v-for="p in players" :key="'mgr-p-'+p.name" class="flex items-center justify-between bg-[#f7f6f6] p-4 rounded-3xl border border-transparent hover:border-[#eee] transition-all">
-                            <div v-if="editingPlayerKey === p.name" class="flex-1 flex gap-2 mr-4" :key="'edit-player-' + p.name">
-                                <input v-model="editPlayerNewName" class="flex-1 bg-white px-3 py-1 rounded-lg border border-[#1893f8] text-sm font-bold focus:outline-none" @keypress.enter="confirmRenamePlayer(p.name)">
-                                <button @click="confirmRenamePlayer(p.name)" class="text-emerald-500 active-scale">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                </button>
-                                <button @click="editingPlayerKey = null" class="text-gray-400 active-scale">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                </button>
+                        <div v-for="p in players" :key="'mgr-p-'+p.name" class="flex flex-col gap-2 bg-[#f7f6f6] p-4 rounded-3xl border border-transparent hover:border-[#eee] transition-all">
+                            <div class="flex items-center justify-between">
+                                <div v-if="editingPlayerKey === p.name" class="flex-1 flex gap-2 mr-4">
+                                    <input v-model="editPlayerNewName" class="flex-1 bg-white px-3 py-1 rounded-lg border border-[#1893f8] text-sm font-bold focus:outline-none" @keypress.enter="confirmRenamePlayer(p.name)">
+                                    <button @click="confirmRenamePlayer(p.name)" class="text-emerald-500 active-scale">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </button>
+                                    <button @click="editingPlayerKey = null" class="text-gray-400 active-scale">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    </button>
+                                </div>
+                                <span v-else class="font-black text-[#302b28] truncate flex-1 leading-none">{{ p.name }}</span>
+                                
+                                <div v-if="editingPlayerKey !== p.name" class="flex gap-2 shrink-0">
+                                    <button @click="startRenamePlayer(p.name)" class="p-2 bg-white rounded-xl text-[#1893f8] shadow-sm active-scale transition-colors">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    </button>
+                                    <button @click="promptDeletePlayer(p.name)" class="p-2 bg-white rounded-xl text-[#ff4d4d] shadow-sm active-scale transition-colors">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                    </button>
+                                </div>
                             </div>
-                            <span v-else class="font-black text-[#302b28] truncate flex-1 leading-none">{{ p.name }}</span>
-                            
-                            <div v-if="editingPlayerKey !== p.name" class="flex gap-2 shrink-0">
-                                <button @click="startRenamePlayer(p.name)" class="p-2 bg-white rounded-xl text-[#1893f8] shadow-sm active-scale transition-colors">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                </button>
-                                <button @click="promptDeletePlayer(p.name)" class="p-2 bg-white rounded-xl text-[#ff4d4d] shadow-sm active-scale transition-colors">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            <div class="flex gap-1 overflow-x-auto no-scrollbar py-1">
+                                <button v-for="cat in categoryOptions" :key="cat.value"
+                                    @click="updatePlayerCategory(p.name, cat.value)"
+                                    class="category-chip py-1"
+                                    :class="getPlayerCategories(p.name).includes(cat.value) ? 'bg-[#302b28] text-white border-[#302b28]' : 'bg-white text-[#ccc] border-[#eee]'">
+                                    {{ cat.label }}
                                 </button>
                             </div>
                         </div>
 
                         <div v-if="isDelPlayerConfOpen" class="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-6 z-50 rounded-b-[2.5rem]">
                             <div class="text-center space-y-6">
-                                <div class="w-16 h-16 bg-[#ff4d4d]/10 text-[#ff4d4d] rounded-full flex items-center justify-center mx-auto">
+                                <div class="w-16 h-16 bg-[#ff4d4d]/10 text-[#ff4d4d] rounded-full flex items-center justify-center mx-auto leading-none">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                                 </div>
-                                <div><h4 class="font-black text-lg text-[#302b28] mb-2 leading-tight">確定要刪除「{{ playerPendingDelete }}」嗎？</h4><p class="text-[10px] text-[#999] font-bold">此操作將永久從名冊中移除，歷史盈虧數據將被保留。</p></div>
+                                <div><h4 class="font-black text-lg text-[#302b28] mb-2 leading-tight">確定要刪除「{{ playerPendingDelete }}」嗎？</h4><p class="text-[10px] text-[#999] font-bold">歷史數據將會保留。</p></div>
                                 <div class="flex gap-4"><button @click="isDelPlayerConfOpen = false" class="flex-1 py-3 bg-[#f7f6f6] rounded-2xl text-[#999] font-black text-sm active-scale">取消</button><button @click="executeDeletePlayer" class="flex-1 py-3 bg-[#ff4d4d] text-white rounded-2xl font-black text-sm active-scale shadow-lg">確認刪除</button></div>
                             </div>
                         </div>
@@ -512,18 +520,14 @@
                             <span v-else class="font-black text-[#302b28] truncate flex-1 leading-none">{{ loc }}</span>
                             
                             <div v-if="editingLocKey !== loc" class="flex gap-2 shrink-0">
-                                <button @click="startRenameLocation(loc)" class="p-2 bg-white rounded-xl text-[#1893f8] shadow-sm active-scale transition-colors">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                </button>
-                                <button @click="promptDeleteLocation(loc)" class="p-2 bg-white rounded-xl text-[#ff4d4d] shadow-sm active-scale transition-colors">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                </button>
+                                <button @click="startRenameLocation(loc)" class="p-2 bg-white rounded-xl text-[#1893f8] shadow-sm active-scale transition-colors"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                <button @click="promptDeleteLocation(loc)" class="p-2 bg-white rounded-xl text-[#ff4d4d] shadow-sm active-scale transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
                         </div>
 
                         <div v-if="isDelLocConfOpen" class="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-6 z-50 rounded-b-[2.5rem]">
                             <div class="text-center space-y-6">
-                                <div class="w-16 h-16 bg-[#ff4d4d]/10 text-[#ff4d4d] rounded-full flex items-center justify-center mx-auto">
+                                <div class="w-16 h-16 bg-[#ff4d4d]/10 text-[#ff4d4d] rounded-full flex items-center justify-center mx-auto leading-none">
                                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                                 </div>
                                 <div><h4 class="font-black text-lg text-[#302b28] mb-2 leading-tight">確定要清除地點「{{ locPendingDelete }}」嗎？</h4><p class="text-[10px] text-[#999] font-bold">這會將所有歷史紀錄中的此地點標記清空。</p></div>
@@ -535,7 +539,58 @@
             </div>
         </transition>
 
-        <!-- 個人戰報詳情 (唯讀) -->
+        <!-- 分類管理 Modal -->
+        <transition name="fade">
+            <div v-if="isCategoryMgrOpen" class="fixed inset-0 bg-[#302b28]/90 backdrop-blur-md flex items-center justify-center z-[130] p-4">
+                <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl max-h-[75vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+                    <div class="p-8 pb-5 flex justify-between items-center border-b border-[#f7f6f6]">
+                        <div class="flex items-center gap-4"><i data-lucide="tag" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-xl font-black leading-none">管理分類設定</h3></div>
+                        <button @click="isCategoryMgrOpen = false" class="w-10 h-10 rounded-full bg-[#f7f6f6] flex items-center justify-center text-[#999] active-scale"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="p-6 border-b border-[#f7f6f6]">
+                        <div class="flex gap-2">
+                             <input type="text" placeholder="新增分類名稱 (如：朋友)" v-model="newCategoryLabel" @keypress.enter="handleAddCategory" class="flex-1 bg-[#f7f6f6] rounded-xl px-4 py-2 text-sm font-bold border-none shadow-inner">
+                             <button @click="handleAddCategory" class="bg-[#1893f8] text-white p-2 rounded-xl active-scale shadow-md"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar relative">
+                        <div v-for="cat in categories" :key="'mgr-cat-'+cat.id" class="flex items-center justify-between bg-[#f7f6f6] p-4 rounded-3xl border border-transparent hover:border-[#eee] transition-all">
+                            <div v-if="editingCatId === cat.id" class="flex-1 flex gap-2 mr-4">
+                                <input v-model="editCatNewName" class="flex-1 bg-white px-3 py-1 rounded-lg border border-[#1893f8] text-sm font-bold focus:outline-none" @keypress.enter="confirmRenameCategory(cat.id)">
+                                <button @click="confirmRenameCategory(cat.id)" class="text-emerald-500 active-scale">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </button>
+                                <button @click="editingCatId = null" class="text-gray-400 active-scale">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                            <span v-else class="font-black text-[#302b28] truncate flex-1 leading-none">{{ cat.label }}</span>
+                            
+                            <div v-if="editingCatId !== cat.id" class="flex gap-2 shrink-0">
+                                <button @click="startRenameCategory(cat)" class="p-2 bg-white rounded-xl text-[#1893f8] shadow-sm active-scale">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button @click="promptDeleteCategory(cat)" class="p-2 bg-white rounded-xl text-[#ff4d4d] shadow-sm active-scale">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div v-if="isDelCatConfOpen" class="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-6 z-50 rounded-b-[2.5rem]">
+                            <div class="text-center space-y-6">
+                                <div class="w-16 h-16 bg-[#ff4d4d]/10 text-[#ff4d4d] rounded-full flex items-center justify-center mx-auto leading-none">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                </div>
+                                <div><h4 class="font-black text-lg text-[#302b28] mb-2 leading-tight">確定要刪除分類「{{ catPendingDelete?.label }}」嗎？</h4><p class="text-[10px] text-[#999] font-bold">刪除後，相關玩家的該標籤會自動移除。</p></div>
+                                <div class="flex gap-4"><button @click="isDelCatConfOpen = false" class="flex-1 py-3 bg-[#f7f6f6] rounded-2xl text-[#999] font-black text-sm active-scale">取消</button><button @click="executeDeleteCategory" class="flex-1 py-3 bg-[#ff4d4d] text-white rounded-2xl font-black text-sm active-scale shadow-lg">確認刪除</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- 個人詳情紀錄 Modal (唯讀) -->
         <transition name="fade">
             <div v-if="detailPlayer" class="fixed inset-0 bg-[#302b28]/80 backdrop-blur-md flex items-center justify-center z-[110] p-4">
                 <div class="bg-white rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
@@ -604,7 +659,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, onSnapshot, query, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, onSnapshot, query, deleteDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_Wc8n7-3AZzDCPRv6DLqjRTeyk9xmyzE",
@@ -619,12 +674,56 @@
 
         const app = createApp({
             setup() {
-                // --- 1. 輔助函式 ---
                 const normalizeDateString = (str) => { if (!str || typeof str !== 'string') return str; const parts = str.split('-'); return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`; };
                 const formatDateKey = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
 
-                // --- 2. 核心運算 ---
+                const appId = ref('mahjong-tracker-2026');
+                const user = ref(null);
+                const activeTab = ref('calendar');
+                const monthFilter = ref('all');
+                const currentYear = ref(new Date().getFullYear());
+                const currentMonth = ref(new Date().getMonth());
+                const leaderboardTab = ref('all');
+                const records = ref({});
+                const players = ref([]);
+                const categories = ref([]); 
+                const isVerified = ref(false);
+                const isPlayerMgrOpen = ref(false);
+                const isLocationMgrOpen = ref(false);
+                const isCategoryMgrOpen = ref(false); 
+                const passwordInput = ref('');
+                const passwordError = ref(false);
+                const isModalOpen = ref(false);
+                const isMonthDetailOpen = ref(false);
+                const viewMode = ref('preview');
+                const selectedDate = ref('');
+                const detailPlayer = ref(null);
+                const cloudStatus = ref('disconnected');
+                const showDeleteConfirm = ref(false);
+                const editingSessionId = ref(null);
+                const formData = ref({ id: '', stakes: '30/10', location: '', rounds: '1', playerStats: {} });
+                const newPlayerName = ref('');
+                
+                const newCategoryLabel = ref('');
+                const editingCatId = ref(null);
+                const editCatNewName = ref('');
+                const isDelCatConfOpen = ref(false);
+                const catPendingDelete = ref(null);
+
+                const editingPlayerKey = ref(null);
+                const editPlayerNewName = ref('');
+                const editingLocKey = ref(null);
+                const editLocNewName = ref('');
+                const isDelPlayerConfOpen = ref(false);
+                const playerPendingDelete = ref(null);
+                const isDelLocConfOpen = ref(false);
+                const locPendingDelete = ref(null);
+                const isDelSessConfOpen = ref(false);
+                const sessPendingDeleteId = ref(null);
+
+                const categoryOptions = computed(() => categories.value.map(c => ({ label: c.label, value: c.id })));
+
                 const getPlayerCategories = (name) => {
                     const p = players.value.find(pl => String(pl.name).trim() === String(name).trim());
                     return ensureCategoryArray(p?.category);
@@ -641,49 +740,6 @@
                         .sort((a, b) => { if (a.name === '阿如') return -1; if (b.name === '阿如') return 1; return 0; });
                 };
 
-                // --- 3. 狀態宣告 ---
-                const appId = ref('mahjong-tracker-2026');
-                const user = ref(null);
-                const activeTab = ref('calendar');
-                const monthFilter = ref('all');
-                const currentYear = ref(new Date().getFullYear());
-                const currentMonth = ref(new Date().getMonth());
-                const leaderboardTab = ref('all');
-                const records = ref({});
-                const players = ref([]);
-                const isVerified = ref(false);
-                const isPlayerMgrOpen = ref(false);
-                const isLocationMgrOpen = ref(false);
-                const passwordInput = ref('');
-                const passwordError = ref(false);
-                const isModalOpen = ref(false);
-                const isMonthDetailOpen = ref(false);
-                const viewMode = ref('preview');
-                const selectedDate = ref('');
-                const detailPlayer = ref(null);
-                const cloudStatus = ref('disconnected');
-                const showDeleteConfirm = ref(false);
-                const editingSessionId = ref(null);
-                const formData = ref({ id: '', stakes: '30/10', location: '', rounds: '1', playerStats: {} });
-                const newPlayerName = ref('');
-                const categoryOptions = [ { label: '家人', value: 'family' }, { label: '情人', value: 'couple' }, { label: '其他', value: 'other' } ];
-
-                const editingPlayerKey = ref(null);
-                const editPlayerNewName = ref('');
-                const editingLocKey = ref(null);
-                const editLocNewName = ref('');
-                
-                const isDelPlayerConfOpen = ref(false);
-                const playerPendingDelete = ref(null);
-                const isDelLocConfOpen = ref(false);
-                const locPendingDelete = ref(null);
-                
-                const isDelSessConfOpen = ref(false);
-                const sessPendingDeleteId = ref(null);
-
-                // --- 4. 管理與刪除邏輯 ---
-
-                // 日曆前後切換 (修復處)
                 const prevMonth = () => { if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; } else { currentMonth.value--; } nextTick(() => lucide.createIcons()); };
                 const nextMonth = () => { if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; } else { currentMonth.value++; } nextTick(() => lucide.createIcons()); };
 
@@ -697,8 +753,9 @@
                         await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
                         for (const date in records.value) {
                             const rec = records.value[date]; if (rec.sessions) {
-                                const newSess = rec.sessions.map(s => { if (s.playerStats && s.playerStats[oldName] !== undefined) { const newStats = { ...s.playerStats }; newStats[newName] = newStats[oldName]; delete newStats[oldName]; return { ...s, playerStats: newStats }; } return s; });
-                                await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', date), { sessions: newSess });
+                                let changed = false;
+                                const newSess = rec.sessions.map(s => { if (s.playerStats && s.playerStats[oldName] !== undefined) { changed = true; const newStats = { ...s.playerStats }; newStats[newName] = newStats[oldName]; delete newStats[oldName]; return { ...s, playerStats: newStats }; } return s; });
+                                if (changed) await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', date), { sessions: newSess });
                             }
                         }
                         editingPlayerKey.value = null; cloudStatus.value = 'connected';
@@ -723,8 +780,9 @@
                     try {
                         for (const date in records.value) {
                             const rec = records.value[date]; if (rec.sessions) {
-                                const newSessions = rec.sessions.map(s => { if (s.location?.trim() === oldLoc) { return { ...s, location: newLoc }; } return s; });
-                                await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', date), { sessions: newSessions });
+                                let updated = false;
+                                const newSessions = rec.sessions.map(s => { if (s.location?.trim() === oldLoc) { updated = true; return { ...s, location: newLoc }; } return s; });
+                                if (updated) await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', date), { sessions: newSessions });
                             }
                         }
                         editingLocKey.value = null; cloudStatus.value = 'connected';
@@ -746,6 +804,39 @@
                     } catch (e) { cloudStatus.value = 'disconnected'; }
                 };
 
+                const handleAddCategory = async () => {
+                    const label = newCategoryLabel.value.trim(); if (!label) return;
+                    const id = 'cat_' + Date.now();
+                    const updatedList = [...categories.value, { id, label }];
+                    cloudStatus.value = 'syncing';
+                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'categories_metadata', 'categories_list'), { list: updatedList });
+                    newCategoryLabel.value = '';
+                    cloudStatus.value = 'connected';
+                };
+
+                const startRenameCategory = (cat) => { editingCatId.value = cat.id; editCatNewName.value = cat.label; };
+                const confirmRenameCategory = async (catId) => {
+                    const newName = editCatNewName.value.trim();
+                    if (!newName) { editingCatId.value = null; return; }
+                    cloudStatus.value = 'syncing';
+                    const updatedList = categories.value.map(c => c.id === catId ? { ...c, label: newName } : c);
+                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'categories_metadata', 'categories_list'), { list: updatedList });
+                    editingCatId.value = null;
+                    cloudStatus.value = 'connected';
+                };
+
+                const promptDeleteCategory = (cat) => { catPendingDelete.value = cat; isDelCatConfOpen.value = true; };
+                const executeDeleteCategory = async () => {
+                    const targetId = catPendingDelete.value.id;
+                    cloudStatus.value = 'syncing';
+                    const updatedCats = categories.value.filter(c => c.id !== targetId);
+                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'categories_metadata', 'categories_list'), { list: updatedCats });
+                    const updatedPlayers = players.value.map(p => ({ ...p, category: ensureCategoryArray(p.category).filter(c => c !== targetId) }));
+                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedPlayers });
+                    isDelCatConfOpen.value = false; catPendingDelete.value = null;
+                    cloudStatus.value = 'connected';
+                };
+
                 const promptDeleteSession = (sessId) => { sessPendingDeleteId.value = sessId; isDelSessConfOpen.value = true; };
                 const executeDeleteSession = async () => {
                     if (!sessPendingDeleteId.value) return;
@@ -761,7 +852,6 @@
                     isDelSessConfOpen.value = false; sessPendingDeleteId.value = null;
                 };
 
-                // --- 5. UI 與 數據載入 ---
                 const handleManualRefresh = () => { cloudStatus.value = 'syncing'; fetchData(); setTimeout(() => { if(user.value) cloudStatus.value = 'connected'; }, 1000); };
                 const handleQuickAdd = () => { const now = new Date(); selectedDate.value = formatDateKey(now.getFullYear(), now.getMonth()+1, now.getDate()); isVerified.value = false; addNewSession(); };
                 const handleDateClick = (day) => { const standardKey = formatDateKey(currentYear.value, currentMonth.value + 1, day); selectedDate.value = standardKey; if (records.value[standardKey]?.sessions?.length) { viewMode.value = 'preview'; } else { addNewSession(); } isModalOpen.value = true; };
@@ -778,12 +868,49 @@
                     newPlayerName.value = '';
                 };
 
+                const updatePlayerCategory = async (name, catVal) => {
+                    const player = players.value.find(p => String(p.name).trim() === String(name).trim());
+                    if (!player) return;
+                    let newCats = [...ensureCategoryArray(player.category)];
+                    if (newCats.includes(catVal)) newCats = newCats.filter(c => c !== catVal);
+                    else newCats.push(catVal);
+                    if (newCats.length === 0) newCats = ['other'];
+                    const updatedList = players.value.map(p => p.name === player.name ? { ...p, category: newCats } : p);
+                    await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList });
+                };
+
                 const deleteSession = async () => { cloudStatus.value = 'syncing'; try { const dateDocRef = doc(db, 'artifacts', appId.value, 'public', 'data', 'records', selectedDate.value); const updatedSessions = (records.value[selectedDate.value]?.sessions || []).filter(s => s.id !== editingSessionId.value); if (updatedSessions.length === 0) { await deleteDoc(dateDocRef); } else { await setDoc(dateDocRef, { sessions: updatedSessions }); } isModalOpen.value = false; cloudStatus.value = 'connected'; } catch (e) { cloudStatus.value = 'disconnected'; } };
                 const saveSession = async () => { cloudStatus.value = 'syncing'; try { const dateDocRef = doc(db, 'artifacts', appId.value, 'public', 'data', 'records', selectedDate.value); let sessions = (records.value[selectedDate.value]?.sessions || []); const sessionData = JSON.parse(JSON.stringify(formData.value)); if (editingSessionId.value) { sessions = sessions.map(s => s.id === editingSessionId.value ? sessionData : s); } else { sessions.push(sessionData); } await setDoc(dateDocRef, { sessions }); isModalOpen.value = false; cloudStatus.value = 'connected'; } catch (e) { cloudStatus.value = 'disconnected'; } };
                 const startEditSession = (sess) => { formData.value = JSON.parse(JSON.stringify(sess)); editingSessionId.value = sess.id; viewMode.value = 'edit'; };
                 const addNewSession = () => { formData.value = { id: Date.now().toString(), stakes: '30/10', location: '', rounds: '1', playerStats: {} }; editingSessionId.value = null; viewMode.value = 'edit'; if (!isModalOpen.value) isModalOpen.value = true; };
 
-                // --- 6. 統計分析 ---
+                const fetchData = () => {
+                    if (!user.value) return;
+                    onSnapshot(collection(db, 'artifacts', appId.value, 'public', 'data', 'records'), (snap) => {
+                        const data = {};
+                        snap.forEach(d => { 
+                            const docData = d.data(); if (!docData.sessions && docData.playerStats) { docData.sessions = [{ ...docData, id: 'legacy-' + d.id }]; }
+                            const normalizedId = normalizeDateString(d.id);
+                            if (normalizedId === '2026-01-09') { 
+                                let changed = false;
+                                const fixed = (docData.sessions || []).map(s => { if (s.location?.trim() === '阿如') { changed = true; return { ...s, location: '阿如家' }; } return s; });
+                                if (changed) setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', d.id), { sessions: fixed });
+                            }
+                            data[normalizedId] = docData; 
+                        });
+                        records.value = data;
+                    });
+                    onSnapshot(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), (snap) => { if (snap.exists()) { players.value = snap.data().list.map(p => ({ ...p, category: ensureCategoryArray(p.category) })); } });
+                    onSnapshot(doc(db, 'artifacts', appId.value, 'public', 'data', 'categories_metadata', 'categories_list'), (snap) => { 
+                        if (snap.exists()) { categories.value = snap.data().list; } 
+                        else {
+                            const defaults = [{id: 'family', label: '家人'}, {id: 'couple', label: '情人'}, {id: 'other', label: '其他'}];
+                            setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'categories_metadata', 'categories_list'), { list: defaults });
+                            categories.value = defaults;
+                        }
+                    });
+                };
+
                 const getHomePlayerStats = (name) => {
                     let games = 0, rounds = 0, wins = 0, winnings = 0, losses = 0; const cleanName = String(name).trim();
                     Object.entries(records.value).forEach(([date, rec]) => {
@@ -806,62 +933,60 @@
                     return history.sort((a, b) => b.date.localeCompare(a.date));
                 };
 
-                const fetchData = () => {
-                    if (!user.value) return;
-                    onSnapshot(collection(db, 'artifacts', appId.value, 'public', 'data', 'records'), (snap) => {
-                        const data = {};
-                        snap.forEach(d => { 
-                            const docData = d.data(); if (!docData.sessions && docData.playerStats) { docData.sessions = [{ ...docData, id: 'legacy-' + d.id }]; }
-                            const normalizedId = normalizeDateString(d.id);
-                            if (normalizedId === '2026-01-09') { 
-                                let changed = false;
-                                const fixed = (docData.sessions || []).map(s => { if (s.location?.trim() === '阿如') { changed = true; return { ...s, location: '阿如家' }; } return s; });
-                                if (changed) setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', d.id), { sessions: fixed });
-                            }
-                            data[normalizedId] = docData; 
-                        });
-                        records.value = data;
-                    });
-                    onSnapshot(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), (snap) => { if (snap.exists()) { players.value = snap.data().list.map(p => ({ ...p, category: ensureCategoryArray(p.category) })); } });
-                };
-
                 const downloadImage = () => { const el = document.querySelector('#app'); html2canvas(el, { backgroundColor: '#f7f6f6', ignoreElements: (e) => e.classList.contains('no-export') }).then(canvas => { const link = document.createElement('a'); link.download = `mahjong-record.png`; link.href = canvas.toDataURL(); link.click(); }); };
 
-                // --- 7. 初始化與掛載 ---
                 const firebaseApp = initializeApp(firebaseConfig);
                 const auth = getAuth(firebaseApp);
                 const db = getFirestore(firebaseApp);
 
                 onMounted(async () => { lucide.createIcons(); await signInAnonymously(auth); onAuthStateChanged(auth, (u) => { user.value = u; if (u) { cloudStatus.value = 'connected'; fetchData(); } }); });
-                watch([activeTab, isModalOpen, detailPlayer, isVerified, isMonthDetailOpen, leaderboardTab, isPlayerMgrOpen, isLocationMgrOpen, editingPlayerKey, editingLocKey, isDelPlayerConfOpen, isDelLocConfOpen, isDelSessConfOpen], () => { 
+                watch([activeTab, isModalOpen, detailPlayer, isVerified, isMonthDetailOpen, leaderboardTab, isPlayerMgrOpen, isLocationMgrOpen, isCategoryMgrOpen, editingPlayerKey, editingLocKey, editingCatId, isDelPlayerConfOpen, isDelLocConfOpen, isDelSessConfOpen, isDelCatConfOpen], () => { 
                     nextTick(() => lucide.createIcons());
                 });
 
                 return {
-                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players, leaderboardTab,
-                    isVerified, isPlayerMgrOpen, isLocationMgrOpen, passwordInput, passwordError, categoryOptions, 
+                    appId, activeTab, monthFilter, currentYear, currentMonth, records, players, categories, leaderboardTab,
+                    isVerified, isPlayerMgrOpen, isLocationMgrOpen, isCategoryMgrOpen, passwordInput, passwordError, categoryOptions, 
                     editingPlayerKey, editPlayerNewName, editingLocKey, editLocNewName,
+                    editingCatId, editCatNewName, newCategoryLabel,
                     isDelPlayerConfOpen, playerPendingDelete, isDelLocConfOpen, locPendingDelete,
-                    isDelSessConfOpen, sessPendingDeleteId,
+                    isDelSessConfOpen, sessPendingDeleteId, isDelCatConfOpen, catPendingDelete,
                     yearOptions: computed(() => { const base = new Date().getFullYear(); const list = []; for(let i = base - 5; i <= base + 5; i++) list.push(i); Object.keys(records.value).forEach(date => { const yr = parseInt(date.split('-')[0]); if(!list.includes(yr)) list.push(yr); }); return [...new Set(list)].sort((a,b) => a-b); }),
                     isModalOpen, viewMode, selectedDate, detailPlayer, cloudStatus, isMonthDetailOpen, showDeleteConfirm, editingSessionId, 
                     allHistoryLocations: computed(() => { const locs = new Set(); Object.values(records.value).forEach(r => { if (r.sessions) r.sessions.forEach(s => { if (s.location) locs.add(s.location.trim()); }); }); return Array.from(locs).sort(); }),
                     formData, newPlayerName, checkPassword, handleManualRefresh, handleQuickAdd, handleDateClick, togglePlayerInSession, toggleLocationInSession, handleAddNewPlayer, 
                     prevMonth, nextMonth, startRenamePlayer, confirmRenamePlayer, promptDeletePlayer, executeDeletePlayer,
                     startRenameLocation, confirmRenameLocation, promptDeleteLocation, executeDeleteLocation,
-                    promptDeleteSession, executeDeleteSession,
+                    promptDeleteSession, executeDeleteSession, updatePlayerCategory,
+                    handleAddCategory, startRenameCategory, confirmRenameCategory, promptDeleteCategory, executeDeleteCategory,
                     saveSession, deleteSession, startEditSession, addNewSession, downloadImage, formatDateKey, getDailyMergedScore, getPlayerCategories, getHomePlayerStats, 
-                    updatePlayerCategory: async (name, catVal) => { const player = players.value.find(p => String(p.name).trim() === String(name).trim()); if (!player) return; let newCats = [...ensureCategoryArray(player.category)]; if (newCats.includes(catVal)) newCats = newCats.filter(c => c !== catVal); else newCats.push(catVal); if (newCats.length === 0) newCats = ['other']; const updatedList = players.value.map(p => p.name === player.name ? { ...p, category: newCats } : p); await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'players_metadata', 'players_list'), { list: updatedList }); }, 
-                    getPlayerHistory, getLocationStats, getSortedPlayerStats,
+                    updatePlayerCategory, getPlayerHistory, getLocationStats, getSortedPlayerStats,
                     displayLeaderboard: computed(() => { 
-                        const map = {}; players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, winnings: 0, losses: 0, participateCount: 0, winCount: 0 }); 
+                        const map = {}; players.value.forEach(p => map[p.name] = { name: p.name, totalProfit: 0, totalWinnings: 0, totalLosses: 0, participateCount: 0, winCount: 0 }); 
                         Object.entries(records.value).forEach(([date, rec]) => { 
                             const [y, m] = date.split('-').map(Number);
                             if (y === currentYear.value && (monthFilter.value === 'all' || m === parseInt(monthFilter.value)) && rec.sessions) {
-                                rec.sessions.forEach(sess => { Object.entries(sess.playerStats).forEach(([name, val]) => { const cleanName = String(name).trim(); if (!map[cleanName]) return; map[cleanName].totalProfit += val; map[cleanName].participateCount += 1; if (val > 0) { map[cleanName].winCount++; map[cleanName].winnings += val; } else if (val < 0) { map[cleanName].losses += val; } }); }); 
+                                rec.sessions.forEach(sess => { 
+                                    Object.entries(sess.playerStats).forEach(([name, val]) => { 
+                                        const cleanName = String(name).trim(); if (!map[cleanName]) return; 
+                                        map[cleanName].totalProfit += val; map[cleanName].participateCount += 1; 
+                                        if (val > 0) { map[cleanName].winCount++; map[cleanName].totalWinnings += val; } 
+                                        else if (val < 0) { map[cleanName].totalLosses += val; } 
+                                    }); 
+                                }); 
                             }
                         }); 
-                        return Object.values(map).filter(s => s.participateCount > 0).filter(p => leaderboardTab.value === 'all' || (leaderboardTab.value === 'dragonTiger' && ['阿如','阿瑋','速配','漢斯'].includes(p.name)) || (leaderboardTab.value === 'kinship' && (getPlayerCategories(p.name).includes('family') || getPlayerCategories(p.name).includes('couple')))).map(s => ({ ...s, winRate: ((s.winCount / s.participateCount) * 100).toFixed(1) })).sort((a, b) => b.totalProfit - a.totalProfit); 
+                        const friendCat = categories.value.find(c => c.label === '朋友');
+                        const familyCat = categories.value.find(c => c.label === '家人');
+                        const targetIds = [friendCat?.id, familyCat?.id].filter(Boolean);
+
+                        return Object.values(map).filter(s => s.participateCount > 0).filter(p => {
+                            if (leaderboardTab.value === 'all') return true;
+                            // 修改處：龍虎榜篩選「朋友」與「家人」
+                            if (leaderboardTab.value === 'dragonTiger') return getPlayerCategories(p.name).some(id => targetIds.includes(id));
+                            if (leaderboardTab.value === 'kinship') return getPlayerCategories(p.name).includes('family') || getPlayerCategories(p.name).includes('couple');
+                            return false;
+                        }).map(s => ({ ...s, winRate: ((s.winCount / s.participateCount) * 100).toFixed(1) })).sort((a, b) => b.totalProfit - a.totalProfit); 
                     }),
                     homeCardTitle: computed(() => { const mNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; return monthFilter.value === 'all' ? 'Yearly Balance' : `${mNames[parseInt(monthFilter.value)-1]} Balance`; }),
                     homeFilteredPlayers: computed(() => players.value.filter(p => { const cats = ensureCategoryArray(p.category); return cats.includes('family') || cats.includes('couple'); })),
