@@ -229,7 +229,7 @@
                     </div>
                     
                     <div class="bg-white rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-8 shadow-sm border border-[#eee] mt-4 space-y-8 animate-in fade-in duration-500">
-                        <div class="flex items-center justify-center gap-2 border-b border-[#f7f6f6] pb-5"><i data-lucide="award" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-lg font-black text-[#302b28]">{{ currentMonth + 1 }}月 表現總覽</h3></div>
+                        <div class="flex items-center justify-center gap-2 border-b border-[#f7f6f6] pb-5"><i data-lucide="award" class="w-6 h-6 text-[#1893f8]"></i><h3 class="text-lg font-black text-[#302b28]">{{ currentMonth + 1 }}月 數據總覽</h3></div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-3">
                                 <div class="text-[11px] font-black text-[#999] uppercase text-center mb-4 tracking-widest leading-none">個人月盈虧</div>
@@ -258,10 +258,11 @@
                     <div class="bg-white rounded-[3rem] shadow-sm border border-[#eee] p-8 md:p-12">
                         <div class="flex flex-col items-center justify-center gap-6 mb-10 border-b border-[#f7f6f6] pb-8">
                             <div class="flex items-center gap-3"><i data-lucide="award" class="w-8 h-8 text-[#1893f8]"></i><h3 class="text-2xl font-black text-[#302b28]">英雄榜</h3></div>
-                            <div class="flex flex-wrap justify-center bg-[#f7f6f6] p-1.5 rounded-2xl no-export w-fit shadow-inner gap-2">
-                                <button @click="leaderboardTab = 'all'" class="px-8 py-2 rounded-xl text-xs font-black transition-all" :class="leaderboardTab === 'all' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">總排行</button>
-                                <button @click="leaderboardTab = 'dragonTiger'" class="px-8 py-2 rounded-xl text-xs font-black transition-all" :class="leaderboardTab === 'dragonTiger' ? 'bg-[#ff9f43] text-white shadow-md' : 'text-[#999]'">龍虎榜</button>
-                                <button @click="leaderboardTab = 'kinship'" class="px-8 py-2 rounded-xl text-xs font-black transition-all" :class="leaderboardTab === 'kinship' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">親情榜</button>
+                            <!-- 排行榜切換：改成同一排且在手機端不換行 -->
+                            <div class="flex flex-nowrap justify-center bg-[#f7f6f6] p-1.5 rounded-2xl no-export w-fit mx-auto shadow-inner gap-1 overflow-x-auto no-scrollbar">
+                                <button @click="leaderboardTab = 'all'" class="px-4 sm:px-8 py-2 rounded-xl text-xs font-black transition-all whitespace-nowrap" :class="leaderboardTab === 'all' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">總排行</button>
+                                <button @click="leaderboardTab = 'dragonTiger'" class="px-4 sm:px-8 py-2 rounded-xl text-xs font-black transition-all whitespace-nowrap" :class="leaderboardTab === 'dragonTiger' ? 'bg-[#ff9f43] text-white shadow-md' : 'text-[#999]'">龍虎榜</button>
+                                <button @click="leaderboardTab = 'kinship'" class="px-4 sm:px-8 py-2 rounded-xl text-xs font-black transition-all whitespace-nowrap" :class="leaderboardTab === 'kinship' ? 'bg-[#1893f8] text-white shadow-md' : 'text-[#999]'">親情榜</button>
                             </div>
                         </div>
 
@@ -282,7 +283,7 @@
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 mt-2 mb-6 bg-white/60 p-5 rounded-3xl text-center shadow-inner relative z-10">
                                     <div><div class="text-[10px] font-black text-[#999] uppercase mb-1 tracking-widest leading-none">獲利統計</div><div class="text-xl font-black text-[#1893f8] leading-none">+{{ (item.totalWinnings || 0).toLocaleString() }}</div></div>
-                                    <div class="border-l border-[#eee]"><div class="text-[10px] font-black text-[#999] uppercase mb-1 tracking-widest導致 leading-none">損失統計</div><div class="text-xl font-black text-[#ff4d4d] leading-none">{{ (item.totalLosses || 0).toLocaleString() }}</div></div>
+                                    <div class="border-l border-[#eee]"><div class="text-[10px] font-black text-[#999] uppercase mb-1 tracking-widest leading-none">損失統計</div><div class="text-xl font-black text-[#ff4d4d] leading-none">{{ (item.totalLosses || 0).toLocaleString() }}</div></div>
                                 </div>
                                 <div class="grid grid-cols-3 gap-2 py-4 border-t border-white/60 items-center relative z-10">
                                     <div class="flex flex-col items-center leading-none"><span class="text-sm font-black text-[#302b28] mb-1 leading-none">{{ item.participateCount }}場</span><span class="text-[8px] text-[#999] font-black uppercase tracking-widest leading-none">紀錄</span></div>
@@ -400,7 +401,7 @@
                                 </div>
                                 <div v-if="editingSessionId" class="pt-4 border-t border-[#eee]">
                                     <div v-if="!showDeleteConfirm" @click="showDeleteConfirm = true" class="w-full py-4 text-[#ff4d4d] text-sm font-black text-center flex items-center justify-center gap-2 cursor-pointer active-scale opacity-70 leading-none"><i data-lucide="trash-2" class="w-4 h-4"></i> 刪除此場次紀錄</div>
-                                    <div v-else class="flex gap-4 animate-in slide-in-from-bottom-2"><button @click="showDeleteConfirm = false" class="flex-1 py-4 bg-[#f7f6f6] rounded-2xl text-[#999] text-xs font-black shadow-inner leading-none">取消</button><button @click="deleteSession" class="flex-[2] py-4 bg-[#ff4d4d] rounded-2xl text-white text-xs font-black shadow-lg">確認刪除</button></div>
+                                    <div v-else class="flex gap-4 animate-in slide-in-from-bottom-2"><button @click="showDeleteConfirm = false" class="flex-1 py-4 bg-[#f7f6f6] rounded-2xl text-[#999] text-xs font-black shadow-inner leading-none">取消</button><button @click="deleteSession" class="flex-[2] py-4 bg-[#ff4d4d] rounded-2xl text-white text-xs font-black shadow-lg leading-none">確認刪除</button></div>
                                 </div>
                              </div>
                         </div>
@@ -674,10 +675,12 @@
 
         const app = createApp({
             setup() {
+                // --- 1. 輔助函式 ---
                 const normalizeDateString = (str) => { if (!str || typeof str !== 'string') return str; const parts = str.split('-'); return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`; };
                 const formatDateKey = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const ensureCategoryArray = (cat) => Array.isArray(cat) ? cat : (typeof cat === 'string' ? [cat] : ['other']);
 
+                // --- 2. 狀態宣告 ---
                 const appId = ref('mahjong-tracker-2026');
                 const user = ref(null);
                 const activeTab = ref('calendar');
@@ -722,6 +725,7 @@
                 const isDelSessConfOpen = ref(false);
                 const sessPendingDeleteId = ref(null);
 
+                // --- 3. 核心運算 ---
                 const categoryOptions = computed(() => categories.value.map(c => ({ label: c.label, value: c.id })));
 
                 const getPlayerCategories = (name) => {
@@ -740,6 +744,7 @@
                         .sort((a, b) => { if (a.name === '阿如') return -1; if (b.name === '阿如') return 1; return 0; });
                 };
 
+                // --- 4. 管理與同步邏輯 ---
                 const prevMonth = () => { if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; } else { currentMonth.value--; } nextTick(() => lucide.createIcons()); };
                 const nextMonth = () => { if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; } else { currentMonth.value++; } nextTick(() => lucide.createIcons()); };
 
@@ -780,7 +785,6 @@
                     try {
                         for (const date in records.value) {
                             const rec = records.value[date]; if (rec.sessions) {
-                                let updated = false;
                                 const newSessions = rec.sessions.map(s => { if (s.location?.trim() === oldLoc) { updated = true; return { ...s, location: newLoc }; } return s; });
                                 if (updated) await setDoc(doc(db, 'artifacts', appId.value, 'public', 'data', 'records', date), { sessions: newSessions });
                             }
@@ -852,6 +856,7 @@
                     isDelSessConfOpen.value = false; sessPendingDeleteId.value = null;
                 };
 
+                // --- 5. UI 與 數據載入 ---
                 const handleManualRefresh = () => { cloudStatus.value = 'syncing'; fetchData(); setTimeout(() => { if(user.value) cloudStatus.value = 'connected'; }, 1000); };
                 const handleQuickAdd = () => { const now = new Date(); selectedDate.value = formatDateKey(now.getFullYear(), now.getMonth()+1, now.getDate()); isVerified.value = false; addNewSession(); };
                 const handleDateClick = (day) => { const standardKey = formatDateKey(currentYear.value, currentMonth.value + 1, day); selectedDate.value = standardKey; if (records.value[standardKey]?.sessions?.length) { viewMode.value = 'preview'; } else { addNewSession(); } isModalOpen.value = true; };
@@ -982,7 +987,6 @@
 
                         return Object.values(map).filter(s => s.participateCount > 0).filter(p => {
                             if (leaderboardTab.value === 'all') return true;
-                            // 修改處：龍虎榜篩選「朋友」與「家人」
                             if (leaderboardTab.value === 'dragonTiger') return getPlayerCategories(p.name).some(id => targetIds.includes(id));
                             if (leaderboardTab.value === 'kinship') return getPlayerCategories(p.name).includes('family') || getPlayerCategories(p.name).includes('couple');
                             return false;
